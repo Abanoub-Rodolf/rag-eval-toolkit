@@ -5,7 +5,7 @@ import yaml
 from typing import Optional
 from rich.console import Console
 from rich.table import Table
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, MsecColumn
+from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
 
 from .evaluator import RAGEvaluator
 from .backends import OpenAIBackend, AnthropicBackend, OllamaBackend, GeminiBackend, LiteLLMBackend
@@ -118,7 +118,7 @@ def run(config, dataset, backend, model, output, report):
         SpinnerColumn(),
         TextColumn("[progress.description]{task.description}"),
         BarColumn(),
-        MsecColumn(),
+        TimeElapsedColumn(),
         console=console
     ) as progress:
         task = progress.add_task("Evaluating...", total=len(data))
