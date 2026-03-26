@@ -10,11 +10,14 @@ class RAGEvaluator:
 
     Args:
         backend: An LLM backend instance used to power LLM-as-judge evaluation.
+        cache_path: Optional path for SQLite cache database.
     """
 
-    def __init__(self, backend: Any) -> None:
+    def __init__(self, backend: Any, cache_path: Optional[str] = None) -> None:
         self.backend = backend
         self.metrics: List[Any] = []
+        from rag_eval.utils.cache import EvaluationCache
+        self.cache = EvaluationCache(db_path=cache_path) if cache_path else None
 
     def add_metric(self, metric: Any) -> None:
         """Register a metric to be computed during evaluation.
@@ -25,38 +28,66 @@ class RAGEvaluator:
         self.metrics.append(metric)
 
     def evaluate(self, dataset: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Run all registered metrics over the provided dataset.
+        """Run all registered metrics over the provided dataset (synchronous)."""
+        import asyncio
+        return asyncio.run(self.aevaluate(dataset))
+
+    async def aevaluate(self, dataset: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Run all registered metrics asynchronously over the dataset.
 
         Args:
-            dataset: List of dicts, each containing 'question', 'context',
-                     and 'answer' keys. 'ground_truth' is optional.
+            dataset: List of dicts containing 'question', 'context', 'answer'.
 
         Returns:
-            Dictionary mapping metric names to their average scores and
-            per-sample results.
-
-        Raises:
-            ValueError: If the dataset is empty or no metrics are registered.
+            Dictionary with averages and per-sample scores.
         """
+        import asyncio
         if not dataset:
             raise ValueError("Dataset must not be empty.")
         if not self.metrics:
-            raise ValueError("No metrics registered. Call add_metric() first.")
+            raise ValueError("No metrics registered.")
 
+        # In a real implementation, metrics would also need to be async-aware.
+        # For v1.0, we'll wrap synchronous scoring in threads to achieve parallelism
+        # if the backend/metrics aren't native async.
+        
         per_metric_scores: Dict[str, List[float]] = {m.name: [] for m in self.metrics}
+        
+        # Define a helper for concurrent execution
+        async def score_task(metric, item):
+            # Check cache first
+            model_name = getattr(self.backend, "model", "default")
+            if self.cache:
+                cached_score = self.cache.get(metric.name, model_name, item)
+                if cached_score is not None:
+                    return cached_score
+            
+            loop = asyncio.get_event_loop()
+            score = await loop.run_in_executor(None, metric.score, item, self.backend)
+            
+            # Store in cache
+            if self.cache:
+                self.cache.set(metric.name, model_name, item, score)
+            return score
 
+        tasks = []
         for item in dataset:
             for metric in self.metrics:
-                try:
-                    score = metric.score(item, self.backend)
-                    score = max(0.0, min(1.0, float(score)))
-                    per_metric_scores[metric.name].append(score)
-                except (ValueError, TypeError) as e:
-                    logger.warning("Failed to parse score for %s: %s. Using 0.0.", metric.name, e)
+                tasks.append(score_task(metric, item))
+        
+        raw_results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # Re-map results to per-metric lists
+        idx = 0
+        for item in dataset:
+            for metric in self.metrics:
+                res = raw_results[idx]
+                if isinstance(res, Exception):
+                    logger.error("Error in async scoring for %s: %s", metric.name, res)
                     per_metric_scores[metric.name].append(0.0)
-                except Exception as e:
-                    logger.error("Backend call failed for %s: %s", metric.name, e)
-                    raise
+                else:
+                    per_metric_scores[metric.name].append(max(0.0, min(1.0, float(res))))
+                idx += 1
 
         averages = {
             name: round(sum(scores) / len(scores), 4)
