@@ -1,44 +1,60 @@
-# RAG Evaluation Toolkit v1.0 — Verification Report
+# RAG Eval Toolkit v1.0 - Verification
 
-## Status Summary
-- **Tests:** 27/27 Passing
-- **Metrics:** 11 Available (Faithfulness, Relevancy, Hallucination, Toxicity, Coherence, Conciseness, Completeness, Attribution, Utilization, Groundedness, Semantic Similarity)
-- **Backends:** 5 Supported (OpenAI, Anthropic, Ollama, Gemini, LiteLLM)
-- **CLI:** 3 Commands (`init`, `metrics`, `run`) with YAML config support.
-- **Core Features:** Async evaluation, SQLite caching, Dataset loaders (CSV/JSON/JSONL).
+## Status
 
-## Comparison: v0.1 vs v1.0
+- **Version:** 1.0.0
+- **Tests:** 27/27 passing
+- **Metrics:** 13 available
+- **Backends:** 5 supported
+- **CLI commands:** 3 (init, metrics, run)
 
-| Feature | v0.1 (Prototype) | v1.0 (Production) |
-| :--- | :--- | :--- |
-| Metrics | 4 (Faithfulness, Relevancy, Precision, Recall) | 11 (Added Hallucination, Toxicity, Coherence, etc.) |
-| Backends | 2 (OpenAI, Anthropic) | 5 (Added Ollama, Gemini, LiteLLM) |
-| Execution | Sequential only | Async/Parallel support |
-| Caching | None | SQLite-based hash cache |
-| Configuration | CLI flags only | YAML config + CLI flags |
-| DX | Basic print statements | Rich/Colored output + Progress bars |
-| Packaging | setup.py (legacy) | pyproject.toml (modern) |
+## Metrics (13)
 
-## Verification Command Proofs
+| # | Metric | Type | Status |
+|---|--------|------|--------|
+| 1 | faithfulness | LLM-as-judge | Implemented + tested |
+| 2 | answer_relevancy | LLM-as-judge | Implemented + tested |
+| 3 | context_precision | LLM-as-judge | Implemented + tested |
+| 4 | context_recall | LLM-as-judge | Implemented + tested |
+| 5 | hallucination | LLM-as-judge | Implemented + tested |
+| 6 | toxicity | LLM-as-judge | Implemented + tested |
+| 7 | coherence | LLM-as-judge | Implemented + tested |
+| 8 | conciseness | LLM-as-judge | Implemented + tested |
+| 9 | completeness | LLM-as-judge | Implemented + tested |
+| 10 | chunk_attribution | LLM-as-judge | Implemented + tested |
+| 11 | context_utilization | LLM-as-judge | Implemented + tested |
+| 12 | groundedness | LLM-as-judge | Implemented + tested |
+| 13 | semantic_similarity | Embedding-based | Implemented + tested |
 
-### CLI Help
-```bash
-rag-eval --help
-```
-(Verified OK)
+## Backends (5)
 
-### Metric List
-```bash
-rag-eval metrics
-```
-(Verified OK - 11 metrics displayed)
+| Backend | Auth | Status |
+|---------|------|--------|
+| OpenAI | `OPENAI_API_KEY` | Implemented |
+| Anthropic | `ANTHROPIC_API_KEY` | Implemented |
+| Ollama | Local (no key) | Implemented |
+| Google Gemini | `GOOGLE_API_KEY` | Implemented |
+| LiteLLM | Varies | Implemented |
 
-### Test Run
-```bash
-python -m pytest tests/
-```
-(Verified OK - 27 tests passed)
+## Core features
 
----
-**Verified by Abanoub Rodolf Boctor**
-**Date: March 25, 2026**
+| Feature | Status |
+|---------|--------|
+| Async evaluation (asyncio + thread pool) | Implemented + tested |
+| SQLite result caching | Implemented + tested |
+| Dataset loaders (JSON, JSONL, CSV) | Implemented |
+| YAML config for CLI runs | Implemented |
+| HTML report generation | Implemented |
+| Rich CLI output (tables, progress) | Implemented |
+
+## v0.1 to v1.0 comparison
+
+| | v0.1 | v1.0 |
+|---|------|------|
+| Metrics | 4 | 13 |
+| Backends | 2 | 5 |
+| Execution | Sequential | Async parallel |
+| Caching | None | SQLite |
+| CLI | Basic | YAML config + Rich UI |
+| Packaging | setup.py | pyproject.toml |
+| Python support | 3.8+ | 3.9-3.12 |
