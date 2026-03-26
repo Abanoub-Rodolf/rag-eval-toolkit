@@ -10,8 +10,9 @@ from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeEl
 from .evaluator import RAGEvaluator
 from .backends import OpenAIBackend, AnthropicBackend, OllamaBackend, GeminiBackend, LiteLLMBackend
 from .metrics import (
-    FaithfulnessMetric, AnswerRelevancyMetric, HallucinationMetric,
-    ToxicityMetric, CoherenceMetric, ConcisenessMetric,
+    FaithfulnessMetric, AnswerRelevancyMetric,
+    ContextPrecisionMetric, ContextRecallMetric,
+    HallucinationMetric, ToxicityMetric, CoherenceMetric, ConcisenessMetric,
     AnswerCompletenessMetric, ChunkAttributionMetric,
     ContextUtilizationMetric, GroundednessMetric, SemanticSimilarityMetric
 )
@@ -22,6 +23,8 @@ console = Console()
 METRIC_MAP = {
     "faithfulness": FaithfulnessMetric,
     "answer_relevancy": AnswerRelevancyMetric,
+    "context_precision": ContextPrecisionMetric,
+    "context_recall": ContextRecallMetric,
     "hallucination": HallucinationMetric,
     "toxicity": ToxicityMetric,
     "coherence": CoherenceMetric,
