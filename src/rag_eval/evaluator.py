@@ -28,8 +28,21 @@ class RAGEvaluator:
         self.metrics.append(metric)
 
     def evaluate(self, dataset: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Run all registered metrics over the provided dataset (synchronous)."""
+        """Run all registered metrics over the provided dataset (synchronous).
+
+        Safe to call from regular Python scripts. If you are already inside an
+        async event loop (Jupyter, FastAPI, etc.), use ``await aevaluate()`` instead.
+        """
         import asyncio
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+
+        if loop and loop.is_running():
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                return pool.submit(asyncio.run, self.aevaluate(dataset)).result()
         return asyncio.run(self.aevaluate(dataset))
 
     async def aevaluate(self, dataset: List[Dict[str, Any]]) -> Dict[str, Any]:
