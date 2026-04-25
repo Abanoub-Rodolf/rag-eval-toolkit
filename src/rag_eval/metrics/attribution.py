@@ -1,57 +1,36 @@
 """Chunk attribution metric -- measures if the answer accurately cites context chunks."""
-import logging
-from typing import Any, Dict
+from typing import Any, Dict, Union
 
 from .base import BaseMetric
-
-logger = logging.getLogger(__name__)
 
 
 class ChunkAttributionMetric(BaseMetric):
     """Evaluates if the answer correctly attributes information to specific context chunks.
-    
-    A score of 1.0 means all claims are correctly attributed to chunks.
+
+    A score of 1.0 means all claims are correctly attributed to source chunks.
     A score of 0.0 means claims are misattributed or not attributed where required.
     """
 
     def __init__(self) -> None:
-        """Initialise ChunkAttributionMetric."""
         super().__init__(name="chunk_attribution")
 
     def score(self, row: Dict[str, Any], backend: Any) -> float:
-        """Score for chunk attribution.
-        
-        Args:
-            row: Must contain 'context' (list or string) and 'answer' keys.
-            backend: LLM backend instance.
-            
-        Returns:
-            Float in [0.0, 1.0].
-        """
-        context = row.get("context")
-        answer = row.get("answer")
+        context = row.get("context", "")
+        answer = row.get("answer", "")
 
-        prompt = f"""
-Evaluate the attribution of claims in the Answer to the provided Context chunks.
+        # normalise list context to a single string for consistent prompt/cache behaviour
+        if isinstance(context, list):
+            context = "\n---\n".join(str(c) for c in context)
 
-Context Chunks: {context}
-Answer: {answer}
-
-Task:
-1. Identify claims in the Answer that require citation from the Context.
-2. Verify if the Answer correctly attributes these claims to the relevant chunks in the Context.
-3. Provide an attribution score from 0.0 to 1.0.
-   - 1.0: All claims requiring citation are correctly and accurately attributed to the source chunks.
-   - 0.0: Many claims are misattributed, or attribution is missing entirely where needed.
-
-Respond ONLY with the float score.
-"""
-        try:
-            response = backend.generate(prompt)
-            return max(0.0, min(1.0, float(response.strip())))
-        except ValueError:
-            logger.warning("ChunkAttributionMetric: could not parse backend response as float.")
-            return 0.0
-        except Exception as exc:
-            logger.error("ChunkAttributionMetric: unexpected error during scoring: %s", exc)
-            return 0.0
+        prompt = (
+            "You are an impartial judge evaluating RAG output quality.\n\n"
+            "Evaluate how accurately the answer attributes its claims to the source "
+            "context chunks provided. Claims requiring citation should reference the "
+            "correct chunk.\n\n"
+            f"<context_chunks>{context}</context_chunks>\n"
+            f"<answer>{answer}</answer>\n\n"
+            "Respond ONLY with a single float score from 0.0 to 1.0.\n"
+            "1.0 = all claims correctly and accurately attributed to source chunks\n"
+            "0.0 = many claims misattributed or attribution missing entirely"
+        )
+        return self._generate_score(backend, prompt)
