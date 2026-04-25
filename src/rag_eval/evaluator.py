@@ -92,6 +92,8 @@ class RAGEvaluator:
             if self.cache:
                 cached = self.cache.get(metric.name, model_name, item)
                 if cached is not None:
+                    if on_progress is not None:
+                        on_progress()
                     return cached
 
             async with sem:
@@ -142,12 +144,7 @@ class RAGEvaluator:
         Returns:
             Path to the generated report.
         """
-        try:
-            from rag_eval.report.generator import generate_html_report
-            generate_html_report(results, output)
-            logger.info("Report saved to %s", output)
-        except ImportError:
-            logger.warning(
-                "Report generator unavailable. Install with: pip install rag-eval-toolkit[report]"
-            )
+        from rag_eval.report.generator import generate_html_report
+        generate_html_report(results, output)
+        logger.info("Report saved to %s", output)
         return output

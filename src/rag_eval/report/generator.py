@@ -1,7 +1,6 @@
 """HTML report generation for evaluation results."""
-import html
+import html as _html
 import json
-import os
 from typing import Any, Dict
 
 
@@ -35,7 +34,8 @@ def generate_html_report(results: Dict[str, Any], output_path: str) -> None:
             body += f"<tr><td>{i + 1}</td>{cols}</tr>"
         sample_rows = f"<h2>Per-Sample Scores</h2><table>{header}{body}</table>"
 
-    html = f"""<!DOCTYPE html>
+    raw_json = _html.escape(json.dumps(results, indent=2))
+    html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -59,12 +59,12 @@ def generate_html_report(results: Dict[str, Any], output_path: str) -> None:
 </table>
 {sample_rows}
 <h2>Raw Results</h2>
-<pre>{html.escape(json.dumps(results, indent=2))}</pre>
+<pre>{raw_json}</pre>
 </body>
 </html>"""
 
     with open(output_path, "w", encoding="utf-8") as f:
-        f.write(html)
+        f.write(html_content)
 
 
 def _score_bar(score: float) -> str:

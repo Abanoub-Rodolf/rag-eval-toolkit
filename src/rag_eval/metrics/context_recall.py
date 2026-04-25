@@ -1,7 +1,10 @@
 """Context recall metric -- measures coverage of ground-truth information in the context."""
+import logging
 from typing import Any, Dict
 
 from .base import BaseMetric
+
+logger = logging.getLogger(__name__)
 
 
 class ContextRecallMetric(BaseMetric):
@@ -12,8 +15,7 @@ class ContextRecallMetric(BaseMetric):
     information is present.
 
     Note:
-        Requires a ``ground_truth`` key in the input row. If absent, an empty
-        string is used which may produce unreliable scores.
+        Requires a ``ground_truth`` key in the input row.
     """
 
     def __init__(self) -> None:
@@ -23,6 +25,9 @@ class ContextRecallMetric(BaseMetric):
         question = row.get("question", "")
         context = row.get("context", "")
         ground_truth = row.get("ground_truth", "")
+
+        if not ground_truth:
+            logger.warning("ContextRecallMetric: ground_truth is missing. Score may be unreliable.")
 
         prompt = (
             "You are an impartial judge evaluating RAG retrieval quality.\n\n"

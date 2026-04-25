@@ -12,7 +12,12 @@ class _LazyMeta(type):
 
 
 def _lazy_backend(name: str, module: str, cls_name: str) -> type:
-    """Return a lazy-loading class proxy that defers the import until first call."""
+    """Return a lazy-loading class proxy that defers the import until first call.
+
+    The proxy has empty bases () — not BaseBackend. isinstance/issubclass still
+    work correctly because _LazyMeta delegates both checks to the real class,
+    which is a proper BaseBackend subclass.
+    """
 
     def _resolve():
         if _cls_cache[0] is None:
