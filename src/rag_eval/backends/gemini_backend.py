@@ -49,7 +49,7 @@ class GeminiBackend(BaseBackend):
                 model="models/text-embedding-004",
                 contents=text,
             )
-            return result.embeddings[0].values
+            return result.embedding.values
         except Exception as exc:
             logger.error("Gemini embedding call failed: %s", exc)
             return []

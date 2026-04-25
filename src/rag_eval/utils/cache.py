@@ -65,6 +65,7 @@ class EvaluationCache:
 
     def __del__(self) -> None:
         try:
-            self._conn.close()
+            with self._lock:
+                self._conn.close()
         except Exception:
             pass

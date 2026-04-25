@@ -54,12 +54,20 @@ class BaseMetric(ABC):
         try:
             response = backend.generate(prompt)
             score = _parse_score(response)
-            if score == 0.0 and not _NUM_RE.search(response.strip()):
-                logger.warning(
-                    "%s: could not extract a score from response: %r",
-                    self.__class__.__name__,
-                    response[:80],
-                )
+            if score == 0.0:
+                nums = [float(m.group()) for m in _NUM_RE.finditer(response.strip())]
+                if nums and all(v < 0.0 or v > 1.0 for v in nums):
+                    logger.warning(
+                        "%s: all numbers out of [0,1] range in response: %r",
+                        self.__class__.__name__,
+                        response[:80],
+                    )
+                elif not nums:
+                    logger.warning(
+                        "%s: no score found in response: %r",
+                        self.__class__.__name__,
+                        response[:80],
+                    )
             return score
         except Exception as exc:
             logger.error("%s: unexpected error during scoring: %s", self.__class__.__name__, exc)

@@ -28,7 +28,6 @@ class RAGEvaluator:
     ) -> None:
         self.backend = backend
         self.metrics: List[Any] = []
-        self._semaphore: Optional[asyncio.Semaphore] = None
         self._max_concurrency = max_concurrency
         from rag_eval.utils.cache import EvaluationCache
         self.cache = EvaluationCache(db_path=cache_path) if cache_path else None
