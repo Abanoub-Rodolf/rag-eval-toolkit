@@ -6,15 +6,23 @@ from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 
-# Matches the first numeric token in [0, 1] — handles "Score: 0.8", "0.9 (very good)", etc.
-_SCORE_RE = re.compile(r'\b(1(?:\.0+)?|0(?:\.\d+)?)\b')
+# Matches any standalone number (int or float) for range checking
+_NUM_RE = re.compile(r'\b\d+(?:\.\d+)?\b')
 
 
 def _parse_score(text: str) -> float:
-    """Extract the first [0, 1] float from an LLM response string."""
-    m = _SCORE_RE.search(text.strip())
-    if m:
-        return float(m.group(1))
+    """Extract the first number in [0.0, 1.0] from an LLM response string.
+
+    Handles common response formats like "Score: 0.8", "0.9 out of 1.0", etc.
+    Returns 0.0 if no valid score is found.
+    """
+    for m in _NUM_RE.finditer(text.strip()):
+        try:
+            v = float(m.group())
+            if 0.0 <= v <= 1.0:
+                return v
+        except ValueError:
+            continue
     return 0.0
 
 
@@ -46,7 +54,7 @@ class BaseMetric(ABC):
         try:
             response = backend.generate(prompt)
             score = _parse_score(response)
-            if score == 0.0 and _SCORE_RE.search(response.strip()) is None:
+            if score == 0.0 and not _NUM_RE.search(response.strip()):
                 logger.warning(
                     "%s: could not extract a score from response: %r",
                     self.__class__.__name__,
