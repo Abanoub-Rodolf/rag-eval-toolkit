@@ -1,54 +1,66 @@
-"""Cache utility for LLM responses."""
+"""SQLite-backed cache for evaluation results."""
 import hashlib
 import json
 import sqlite3
-from typing import Any, Optional
+from typing import Any, Dict, Optional
+
 
 class EvaluationCache:
-    """SQLite-based cache for evaluation results.
-    
+    """Persistent cache for per-sample metric scores.
+
+    Uses a single SQLite connection held for the lifetime of the instance.
+
     Args:
-        db_path: Path to SQLite database file (default: ".rag_eval_cache.db").
+        db_path: Path to the SQLite database file.
     """
 
     def __init__(self, db_path: str = ".rag_eval_cache.db") -> None:
         self.db_path = db_path
-        self._init_db()
+        self._conn = sqlite3.connect(db_path, check_same_thread=False)
+        self._conn.execute(
+            """CREATE TABLE IF NOT EXISTS cache (
+                key TEXT PRIMARY KEY,
+                value TEXT,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+            )"""
+        )
+        self._conn.commit()
 
-    def _init_db(self) -> None:
-        with sqlite3.connect(self.db_path) as conn:
-            conn.execute("""
-                CREATE TABLE IF NOT EXISTS cache (
-                    key TEXT PRIMARY KEY,
-                    value TEXT,
-                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-                )
-            """)
-
-    def _generate_key(self, metric_name: str, model_name: str, row: dict) -> str:
-        """Generate a unique hash key for a given input."""
-        # Use only relevant keys for hashing
-        hash_input = {
+    def _key(self, metric_name: str, model_name: str, row: Dict[str, Any]) -> str:
+        context = row.get("context", "")
+        if isinstance(context, list):
+            context = "\n---\n".join(str(c) for c in context)
+        payload = {
             "metric": metric_name,
             "model": model_name,
-            "data": {k: row.get(k) for k in ["question", "context", "answer", "ground_truth"]}
+            "data": {
+                "question": row.get("question"),
+                "context": context,
+                "answer": row.get("answer"),
+                "ground_truth": row.get("ground_truth"),
+            },
         }
-        serialized = json.dumps(hash_input, sort_keys=True)
-        return hashlib.sha256(serialized.encode()).hexdigest()
+        return hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
 
-    def get(self, metric_name: str, model_name: str, row: dict) -> Optional[float]:
-        """Retrieve cached score if it exists."""
-        key = self._generate_key(metric_name, model_name, row)
-        with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.execute("SELECT value FROM cache WHERE key = ?", (key,))
-            result = cursor.fetchone()
-            return float(result[0]) if result else None
+    def get(self, metric_name: str, model_name: str, row: Dict[str, Any]) -> Optional[float]:
+        cursor = self._conn.execute(
+            "SELECT value FROM cache WHERE key = ?", (self._key(metric_name, model_name, row),)
+        )
+        result = cursor.fetchone()
+        return float(result[0]) if result else None
 
-    def set(self, metric_name: str, model_name: str, row: dict, score: float) -> None:
-        """Store score in cache."""
-        key = self._generate_key(metric_name, model_name, row)
-        with sqlite3.connect(self.db_path) as conn:
-            conn.execute(
-                "INSERT OR REPLACE INTO cache (key, value) VALUES (?, ?)",
-                (key, str(score))
-            )
+    def set(self, metric_name: str, model_name: str, row: Dict[str, Any], score: float) -> None:
+        self._conn.execute(
+            "INSERT OR REPLACE INTO cache (key, value) VALUES (?, ?)",
+            (self._key(metric_name, model_name, row), str(score)),
+        )
+        self._conn.commit()
+
+    def close(self) -> None:
+        self._conn.close()
+
+    def __del__(self) -> None:
+        try:
+            self._conn.close()
+        except Exception:
+            pass
