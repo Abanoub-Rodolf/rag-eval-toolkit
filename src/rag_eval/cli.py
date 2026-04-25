@@ -65,8 +65,8 @@ def metrics():
 @main.command()
 @click.option('--config', type=click.Path(exists=True), help='Path to YAML config file')
 @click.option('--dataset', type=click.Path(exists=True), help='Path to dataset (JSON, JSONL, CSV)')
-@click.option('--backend', type=click.Choice(list(BACKEND_MAP.keys())), default='openai', help='LLM backend')
-@click.option('--model', help='Model name for the backend')
+@click.option('--backend', type=click.Choice(list(BACKEND_MAP.keys())), default=None, help='LLM backend')
+@click.option('--model', default=None, help='Model name for the backend')
 @click.option('--output', type=click.Path(), default='report.json', help='Output results path')
 @click.option('--report', is_flag=True, help='Generate HTML report')
 def run(config, dataset, backend, model, output, report):

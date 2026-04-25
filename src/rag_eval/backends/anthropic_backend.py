@@ -7,7 +7,7 @@ except ImportError:
 from .base import BaseBackend
 
 class AnthropicBackend(BaseBackend):
-    def __init__(self, model: str = "claude-3-opus-20240229"):
+    def __init__(self, model: str = "claude-sonnet-4-6"):
         if Anthropic is None:
             raise ImportError("Please install anthropic: pip install anthropic")
             

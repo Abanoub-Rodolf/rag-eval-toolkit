@@ -35,7 +35,7 @@ SAMPLE_DATASET = [
 def main():
     print("=== RAG Evaluation Toolkit - Basic Example ===\n")
 
-    backend = AnthropicBackend(model="claude-sonnet-4-20250514")
+    backend = AnthropicBackend(model="claude-sonnet-4-6")
     evaluator = RAGEvaluator(backend=backend)
 
     evaluator.add_metric(FaithfulnessMetric())

@@ -7,7 +7,7 @@ except ImportError:
 from .base import BaseBackend
 
 class OpenAIBackend(BaseBackend):
-    def __init__(self, model: str = "gpt-4-turbo-preview"):
+    def __init__(self, model: str = "gpt-4o"):
         if OpenAI is None:
             raise ImportError("Please install openai: pip install openai")
         
