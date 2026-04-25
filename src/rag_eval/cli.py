@@ -118,6 +118,7 @@ def run(config, dataset, backend, model, output, cache_path, report):
         console.print(f"[red]error:[/red] could not load dataset: {exc}")
         sys.exit(1)
 
+    total_steps = len(data) * len(evaluator.metrics)
     console.print(
         f"[bold]Starting evaluation[/bold] — {len(data)} samples, "
         f"{len(evaluator.metrics)} metrics, backend={backend_name}"
@@ -130,9 +131,8 @@ def run(config, dataset, backend, model, output, cache_path, report):
         TimeElapsedColumn(),
         console=console,
     ) as progress:
-        task = progress.add_task("Evaluating...", total=len(data))
-        results = evaluator.evaluate(data)
-        progress.update(task, advance=len(data))
+        task = progress.add_task("Evaluating...", total=total_steps)
+        results = evaluator.evaluate(data, on_progress=lambda: progress.advance(task, 1))
 
     table = Table(title="Evaluation Summary")
     table.add_column("Metric", style="cyan")

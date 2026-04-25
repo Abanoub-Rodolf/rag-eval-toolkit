@@ -36,11 +36,20 @@ class RAGEvaluator:
         """Register a metric to be computed during evaluation."""
         self.metrics.append(metric)
 
-    def evaluate(self, dataset: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def evaluate(
+        self,
+        dataset: List[Dict[str, Any]],
+        on_progress: Optional[Any] = None,
+    ) -> Dict[str, Any]:
         """Run all registered metrics over the dataset (synchronous).
 
         Safe to call from regular Python scripts. If already inside an async
         event loop (Jupyter, FastAPI, etc.), use ``await aevaluate()`` instead.
+
+        Args:
+            dataset: List of dicts containing ``question``, ``context``, ``answer``.
+            on_progress: Optional zero-argument callable invoked after each
+                score completes. Use to drive a progress bar.
         """
         try:
             loop = asyncio.get_running_loop()
@@ -50,14 +59,20 @@ class RAGEvaluator:
         if loop and loop.is_running():
             import concurrent.futures
             with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
-                return pool.submit(asyncio.run, self.aevaluate(dataset)).result()
-        return asyncio.run(self.aevaluate(dataset))
+                return pool.submit(asyncio.run, self.aevaluate(dataset, on_progress=on_progress)).result()
+        return asyncio.run(self.aevaluate(dataset, on_progress=on_progress))
 
-    async def aevaluate(self, dataset: List[Dict[str, Any]]) -> Dict[str, Any]:
+    async def aevaluate(
+        self,
+        dataset: List[Dict[str, Any]],
+        on_progress: Optional[Any] = None,
+    ) -> Dict[str, Any]:
         """Run all registered metrics asynchronously over the dataset.
 
         Args:
             dataset: List of dicts containing ``question``, ``context``, ``answer``.
+            on_progress: Optional zero-argument callable invoked after each
+                score completes. Fires ``len(dataset) * len(metrics)`` times total.
 
         Returns:
             Dict with ``averages`` (per-metric mean) and ``per_sample`` (all scores).
@@ -85,6 +100,8 @@ class RAGEvaluator:
 
             if self.cache:
                 self.cache.set(metric.name, model_name, item, score)
+            if on_progress is not None:
+                on_progress()
             return score
 
         tasks = [
