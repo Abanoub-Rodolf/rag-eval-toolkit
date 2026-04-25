@@ -41,8 +41,8 @@ class EvaluationCache:
         key = self._generate_key(metric_name, model_name, row)
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.execute("SELECT value FROM cache WHERE key = ?", (key,))
-            row = cursor.fetchone()
-            return float(row[0]) if row else None
+            result = cursor.fetchone()
+            return float(result[0]) if result else None
 
     def set(self, metric_name: str, model_name: str, row: dict, score: float) -> None:
         """Store score in cache."""

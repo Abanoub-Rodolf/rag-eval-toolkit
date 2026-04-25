@@ -75,7 +75,7 @@ class RAGEvaluator:
                 if cached_score is not None:
                     return cached_score
             
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             score = await loop.run_in_executor(None, metric.score, item, self.backend)
             
             # Store in cache
