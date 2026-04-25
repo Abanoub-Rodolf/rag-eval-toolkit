@@ -23,7 +23,7 @@ def load_dataset(path: str) -> List[Dict[str, Any]]:
     
     if path.endswith(".jsonl"):
         with open(path, "r", encoding="utf-8") as f:
-            return [json.loads(line) for line in f]
+            return [json.loads(line) for line in f if line.strip()]
     
     if path.endswith(".json"):
         with open(path, "r", encoding="utf-8") as f:

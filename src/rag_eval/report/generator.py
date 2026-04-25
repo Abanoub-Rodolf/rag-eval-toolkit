@@ -1,4 +1,5 @@
 """HTML report generation for evaluation results."""
+import html
 import json
 import os
 from typing import Any, Dict
@@ -58,7 +59,7 @@ def generate_html_report(results: Dict[str, Any], output_path: str) -> None:
 </table>
 {sample_rows}
 <h2>Raw Results</h2>
-<pre>{json.dumps(results, indent=2)}</pre>
+<pre>{html.escape(json.dumps(results, indent=2))}</pre>
 </body>
 </html>"""
 
