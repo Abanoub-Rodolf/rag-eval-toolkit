@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 class GroundednessMetric(BaseMetric):
     """Evaluates the groundedness of the generated answer using Natural Language Inference.
     
-    A score of 1.0 means the answer is fully entails by the context.
+    A score of 1.0 means the answer is fully entailed by the context.
     A score of 0.0 means the answer is not supported or contradicts the context.
     """
 

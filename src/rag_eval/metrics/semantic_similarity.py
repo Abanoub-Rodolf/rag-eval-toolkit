@@ -20,18 +20,21 @@ class SemanticSimilarityMetric(BaseMetric):
 
     def _get_embedding(self, text: str, backend: Any) -> np.ndarray:
         """Get embedding for a text string.
-        
-        Currently assumes the backend has an ``embed(text)`` method.
-        If not, returns a zero vector (for testing/safety).
+
+        Requires the backend to expose an ``embed(text) -> list[float]`` method.
+        Returns an empty array when embedding is unavailable so cosine similarity
+        will return 0.0 via the norm-zero guard in ``_cosine_similarity``.
         """
         if hasattr(backend, "embed"):
             try:
                 return np.array(backend.embed(text))
             except Exception as e:
                 logger.error("Failed to get embedding: %s", e)
-        
-        # Fallback to zero vector if backend doesn't support embedding
-        return np.zeros(128)
+        else:
+            logger.warning(
+                "SemanticSimilarityMetric: backend does not support embed(). Returning 0.0."
+            )
+        return np.zeros(0)
 
     def _cosine_similarity(self, vec1: np.ndarray, vec2: np.ndarray) -> float:
         """Compute cosine similarity between two vectors."""
