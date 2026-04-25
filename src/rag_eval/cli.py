@@ -1,5 +1,6 @@
 import click
 import json
+import os
 import sys
 import yaml
 from rich.console import Console
@@ -146,8 +147,7 @@ def run(config, dataset, backend, model, output, cache_path, report):
     console.print(f"Results saved to [bold]{output_path}[/bold]")
 
     if report or cfg.get("report"):
-        import os as _os
-        base, _ = _os.path.splitext(output_path)
+        base, _ = os.path.splitext(output_path)
         report_path = base + ".html"
         evaluator.generate_report(results, output=report_path)
         console.print(f"HTML report at [bold]{report_path}[/bold]")
