@@ -18,10 +18,10 @@ class GeminiBackend(BaseBackend):
 
     def __init__(self, model: str = "gemini-1.5-flash", api_key: Optional[str] = None) -> None:
         try:
-            import google.generativeai as genai
+            from google import genai
         except ImportError:
             raise ImportError(
-                "Google Generative AI SDK not installed. Run: pip install google-generativeai"
+                "Google Gen AI SDK not installed. Run: pip install google-genai"
             )
 
         self.api_key = api_key or os.getenv("GOOGLE_API_KEY")

@@ -2,6 +2,7 @@
 import hashlib
 import json
 import sqlite3
+import threading
 from typing import Any, Dict, Optional
 
 
@@ -16,6 +17,7 @@ class EvaluationCache:
 
     def __init__(self, db_path: str = ".rag_eval_cache.db") -> None:
         self.db_path = db_path
+        self._lock = threading.Lock()
         self._conn = sqlite3.connect(db_path, check_same_thread=False)
         self._conn.execute(
             """CREATE TABLE IF NOT EXISTS cache (
@@ -43,18 +45,20 @@ class EvaluationCache:
         return hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
 
     def get(self, metric_name: str, model_name: str, row: Dict[str, Any]) -> Optional[float]:
-        cursor = self._conn.execute(
-            "SELECT value FROM cache WHERE key = ?", (self._key(metric_name, model_name, row),)
-        )
-        result = cursor.fetchone()
-        return float(result[0]) if result else None
+        with self._lock:
+            cursor = self._conn.execute(
+                "SELECT value FROM cache WHERE key = ?", (self._key(metric_name, model_name, row),)
+            )
+            result = cursor.fetchone()
+            return float(result[0]) if result else None
 
     def set(self, metric_name: str, model_name: str, row: Dict[str, Any], score: float) -> None:
-        self._conn.execute(
-            "INSERT OR REPLACE INTO cache (key, value) VALUES (?, ?)",
-            (self._key(metric_name, model_name, row), str(score)),
-        )
-        self._conn.commit()
+        with self._lock:
+            self._conn.execute(
+                "INSERT OR REPLACE INTO cache (key, value) VALUES (?, ?)",
+                (self._key(metric_name, model_name, row), str(score)),
+            )
+            self._conn.commit()
 
     def close(self) -> None:
         self._conn.close()
