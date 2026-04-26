@@ -71,3 +71,41 @@ class TestGenerateHtmlReport:
         gen = HTMLReportGenerator()
         gen.generate(sample_results, out)
         assert os.path.exists(out)
+
+    def test_xss_metric_name_in_summary_table(self, tmp_path):
+        results = {
+            "averages": {"<script>alert(1)</script>": 0.5},
+            "per_sample": {"<script>alert(1)</script>": [0.5]},
+        }
+        out = str(tmp_path / "report.html")
+        generate_html_report(results, out)
+        content = open(out).read()
+        assert "<script>alert(1)</script>" not in content
+        assert "&lt;script&gt;alert(1)&lt;/script&gt;" in content
+
+    def test_xss_metric_name_in_per_sample_header(self, tmp_path):
+        results = {
+            "averages": {"normal": 0.5},
+            "per_sample": {"<img onerror=x>": [0.5]},
+        }
+        out = str(tmp_path / "report.html")
+        generate_html_report(results, out)
+        content = open(out).read()
+        assert "<img onerror=x>" not in content
+        assert "&lt;img onerror=x&gt;" in content
+
+    def test_score_bar_clamps_overflow(self, tmp_path):
+        results = {"averages": {"m": 1.5}, "per_sample": {"m": [1.5]}}
+        out = str(tmp_path / "report.html")
+        generate_html_report(results, out)
+        content = open(out).read()
+        assert "width:150px" not in content
+        assert "width:100px" in content
+
+    def test_score_bar_clamps_negative(self, tmp_path):
+        results = {"averages": {"m": -0.3}, "per_sample": {"m": [-0.3]}}
+        out = str(tmp_path / "report.html")
+        generate_html_report(results, out)
+        content = open(out).read()
+        assert "width:-30px" not in content
+        assert "width:0px" in content

@@ -8,15 +8,15 @@ def generate_html_report(results: Dict[str, Any], output_path: str) -> None:
     """Write a self-contained HTML evaluation report to disk.
 
     Args:
-        results: Output from RAGEvaluator.evaluate() — must have 'averages'
+        results: Output from RAGEvaluator.evaluate(). Must have 'averages'
             and 'per_sample' keys.
-        output_path: Destination file path for the HTML report.
+        output_path: Destination file path.
     """
     averages = results.get("averages", {})
     per_sample = results.get("per_sample", {})
 
     rows_html = "\n".join(
-        f"<tr><td>{name}</td><td>{score:.4f}</td>"
+        f"<tr><td>{_html.escape(str(name))}</td><td>{score:.4f}</td>"
         f"<td>{_score_bar(score)}</td></tr>"
         for name, score in averages.items()
     )
@@ -25,7 +25,11 @@ def generate_html_report(results: Dict[str, Any], output_path: str) -> None:
     if per_sample:
         metrics = list(per_sample.keys())
         n = max(len(v) for v in per_sample.values()) if per_sample else 0
-        header = "<tr><th>#</th>" + "".join(f"<th>{m}</th>" for m in metrics) + "</tr>"
+        header = (
+            "<tr><th>#</th>"
+            + "".join(f"<th>{_html.escape(str(m))}</th>" for m in metrics)
+            + "</tr>"
+        )
         body = ""
         for i in range(n):
             cols = "".join(
@@ -68,12 +72,12 @@ def generate_html_report(results: Dict[str, Any], output_path: str) -> None:
 
 
 def _score_bar(score: float) -> str:
-    pct = int(score * 100)
+    pct = max(0, min(100, int(score * 100)))
     return f'<span class="bar" style="width:{pct}px">&nbsp;</span> {pct}%'
 
 
 class HTMLReportGenerator:
-    """Thin class wrapper around generate_html_report for backwards compat."""
+    """Thin wrapper around generate_html_report."""
 
     def generate(self, results: Dict[str, Any], output_path: str) -> None:
         generate_html_report(results, output_path)
