@@ -140,7 +140,7 @@ Supported formats: JSON, JSONL, CSV.
 - **Async execution**: Metrics are scored in parallel using asyncio + thread pool
 - **Result caching**: SQLite-backed cache keyed on (metric, model, input hash). Skip re-evaluation of identical inputs.
 - **YAML config**: Reproducible evaluation runs via `eval_config.yaml`
-- **HTML reports**: Visual report generation (requires `jinja2`)
+- **HTML reports**: Visual report generation, zero extra deps
 - **Rich CLI output**: Colored tables, progress bars, clear error messages
 
 ## Custom metrics
