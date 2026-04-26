@@ -2,32 +2,32 @@
 
 __version__ = "1.0.0"
 
-from rag_eval.evaluator import RAGEvaluator
 from rag_eval.backends import (
-    BaseBackend,
-    OpenAIBackend,
     AnthropicBackend,
-    OllamaBackend,
+    BaseBackend,
     GeminiBackend,
     LiteLLMBackend,
+    OllamaBackend,
+    OpenAIBackend,
 )
+from rag_eval.evaluator import RAGEvaluator
 from rag_eval.metrics import (
-    BaseMetric,
-    FaithfulnessMetric,
+    AnswerCompletenessMetric,
     AnswerRelevancyMetric,
-    ContextPrecisionMetric,
-    ContextRecallMetric,
-    HallucinationMetric,
-    ToxicityMetric,
+    BaseMetric,
+    ChunkAttributionMetric,
     CoherenceMetric,
     ConcisenessMetric,
-    AnswerCompletenessMetric,
-    ChunkAttributionMetric,
+    ContextPrecisionMetric,
+    ContextRecallMetric,
     ContextUtilizationMetric,
+    FaithfulnessMetric,
     GroundednessMetric,
+    HallucinationMetric,
     SemanticSimilarityMetric,
+    ToxicityMetric,
 )
-from rag_eval.utils import load_dataset, format_score, save_results_to_csv
+from rag_eval.utils import format_score, load_dataset, save_results_to_csv
 
 __all__ = [
     "RAGEvaluator",

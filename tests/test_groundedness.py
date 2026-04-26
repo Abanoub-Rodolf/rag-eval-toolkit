@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import MagicMock
+
 from rag_eval.metrics.groundedness import GroundednessMetric
+
 
 class TestGroundednessMetric(unittest.TestCase):
     def setUp(self):

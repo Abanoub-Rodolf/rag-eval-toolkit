@@ -1,5 +1,5 @@
 """Context precision metric -- measures signal-to-noise ratio of retrieved context."""
-from typing import Any, Dict
+from typing import Any
 
 from .base import BaseMetric
 
@@ -14,7 +14,7 @@ class ContextPrecisionMetric(BaseMetric):
     def __init__(self) -> None:
         super().__init__(name="context_precision")
 
-    def score(self, row: Dict[str, Any], backend: Any) -> float:
+    def score(self, row: dict[str, Any], backend: Any) -> float:
         question = row.get("question", "")
         context = row.get("context", "")
 

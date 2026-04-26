@@ -1,5 +1,5 @@
 """Answer completeness metric -- measures if the answer addresses all parts of the question."""
-from typing import Any, Dict
+from typing import Any
 
 from .base import BaseMetric
 
@@ -14,7 +14,7 @@ class AnswerCompletenessMetric(BaseMetric):
     def __init__(self) -> None:
         super().__init__(name="completeness")
 
-    def score(self, row: Dict[str, Any], backend: Any) -> float:
+    def score(self, row: dict[str, Any], backend: Any) -> float:
         question = row.get("question", "")
         answer = row.get("answer", "")
 

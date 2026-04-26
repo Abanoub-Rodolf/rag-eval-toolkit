@@ -1,10 +1,7 @@
 """Core RAG evaluation orchestrator."""
 import asyncio
 import logging
-from typing import Any, Dict, List, Optional
-
-from rag_eval.backends.base import BaseBackend
-from rag_eval.metrics.base import BaseMetric
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +24,7 @@ class RAGEvaluator:
         max_concurrency: int = _DEFAULT_CONCURRENCY,
     ) -> None:
         self.backend = backend
-        self.metrics: List[Any] = []
+        self.metrics: list[Any] = []
         self._max_concurrency = max_concurrency
         from rag_eval.utils.cache import EvaluationCache
         self.cache = EvaluationCache(db_path=cache_path) if cache_path else None
@@ -38,9 +35,9 @@ class RAGEvaluator:
 
     def evaluate(
         self,
-        dataset: List[Dict[str, Any]],
+        dataset: list[dict[str, Any]],
         on_progress: Optional[Any] = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Run all registered metrics over the dataset (synchronous).
 
         Safe to call from regular Python scripts. If already inside an async
@@ -64,9 +61,9 @@ class RAGEvaluator:
 
     async def aevaluate(
         self,
-        dataset: List[Dict[str, Any]],
+        dataset: list[dict[str, Any]],
         on_progress: Optional[Any] = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Run all registered metrics asynchronously over the dataset.
 
         Args:
@@ -85,9 +82,9 @@ class RAGEvaluator:
         # re-create semaphore inside the running loop
         sem = asyncio.Semaphore(self._max_concurrency)
 
-        per_metric_scores: Dict[str, List[float]] = {m.name: [] for m in self.metrics}
+        per_metric_scores: dict[str, list[float]] = {m.name: [] for m in self.metrics}
 
-        async def score_task(metric: Any, item: Dict[str, Any]) -> float:
+        async def score_task(metric: Any, item: dict[str, Any]) -> float:
             try:
                 model_name = getattr(self.backend, "model", "default")
                 if self.cache:
@@ -118,7 +115,7 @@ class RAGEvaluator:
         raw_results = await asyncio.gather(*tasks, return_exceptions=True)
 
         idx = 0
-        for item in dataset:
+        for _item in dataset:
             for metric in self.metrics:
                 res = raw_results[idx]
                 if isinstance(res, Exception):
@@ -136,7 +133,7 @@ class RAGEvaluator:
         return {"averages": averages, "per_sample": per_metric_scores}
 
     def generate_report(
-        self, results: Dict[str, Any], output: str = "eval_report.html"
+        self, results: dict[str, Any], output: str = "eval_report.html"
     ) -> str:
         """Generate an HTML evaluation report.
 

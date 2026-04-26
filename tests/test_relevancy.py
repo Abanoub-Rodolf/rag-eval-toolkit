@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import MagicMock
+
 from rag_eval.metrics.relevancy import AnswerRelevancyMetric
+
 
 class TestAnswerRelevancyMetric(unittest.TestCase):
     def setUp(self):

@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import MagicMock
+
 from rag_eval.metrics.coherence import CoherenceMetric
+
 
 class TestCoherenceMetric(unittest.TestCase):
     def setUp(self):

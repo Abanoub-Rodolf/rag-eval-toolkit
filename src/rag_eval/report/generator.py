@@ -1,10 +1,10 @@
 """HTML report generation for evaluation results."""
 import html as _html
 import json
-from typing import Any, Dict
+from typing import Any
 
 
-def generate_html_report(results: Dict[str, Any], output_path: str) -> None:
+def generate_html_report(results: dict[str, Any], output_path: str) -> None:
     """Write a self-contained HTML evaluation report to disk.
 
     Args:
@@ -79,5 +79,5 @@ def _score_bar(score: float) -> str:
 class HTMLReportGenerator:
     """Thin wrapper around generate_html_report."""
 
-    def generate(self, results: Dict[str, Any], output_path: str) -> None:
+    def generate(self, results: dict[str, Any], output_path: str) -> None:
         generate_html_report(results, output_path)

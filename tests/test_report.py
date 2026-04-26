@@ -1,8 +1,8 @@
 import os
-import tempfile
+
 import pytest
 
-from rag_eval.report.generator import generate_html_report, HTMLReportGenerator
+from rag_eval.report.generator import HTMLReportGenerator, generate_html_report
 
 
 @pytest.fixture

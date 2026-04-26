@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import MagicMock
+
 from rag_eval.metrics.faithfulness import FaithfulnessMetric
+
 
 class TestFaithfulnessMetric(unittest.TestCase):
     def setUp(self):

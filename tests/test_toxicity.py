@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import MagicMock
+
 from rag_eval.metrics.toxicity import ToxicityMetric
+
 
 class TestToxicityMetric(unittest.TestCase):
     def setUp(self):

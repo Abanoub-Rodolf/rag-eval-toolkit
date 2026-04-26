@@ -1,5 +1,5 @@
 """Chunk attribution metric -- measures if the answer accurately cites context chunks."""
-from typing import Any, Dict, Union
+from typing import Any
 
 from .base import BaseMetric
 
@@ -14,7 +14,7 @@ class ChunkAttributionMetric(BaseMetric):
     def __init__(self) -> None:
         super().__init__(name="chunk_attribution")
 
-    def score(self, row: Dict[str, Any], backend: Any) -> float:
+    def score(self, row: dict[str, Any], backend: Any) -> float:
         context = row.get("context", "")
         answer = row.get("answer", "")
 

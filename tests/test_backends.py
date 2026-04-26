@@ -1,7 +1,7 @@
 """Unit tests for all five LLM backends."""
-import pytest
-from unittest.mock import MagicMock, patch, PropertyMock
+from unittest.mock import MagicMock, patch
 
+import pytest
 
 # ---------------------------------------------------------------------------
 # OpenAI backend
@@ -222,8 +222,6 @@ class TestGeminiBackend:
         fake_google.genai = mock_genai
         with patch.dict("sys.modules", {"google": fake_google, "google.genai": mock_genai}), \
              patch.dict("os.environ", {}, clear=True):
-            import os
-            original = os.environ.get
             with patch("os.environ.get", side_effect=lambda k, d=None: None):
                 with pytest.raises((ValueError, Exception)):
                     GeminiBackend()

@@ -1,7 +1,8 @@
 import unittest
 from unittest.mock import MagicMock
-import numpy as np
+
 from rag_eval.metrics.semantic_similarity import SemanticSimilarityMetric
+
 
 class TestSemanticSimilarityMetric(unittest.TestCase):
     def setUp(self):

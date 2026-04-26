@@ -1,5 +1,5 @@
 """Faithfulness metric -- measures whether the answer is grounded in the context."""
-from typing import Any, Dict
+from typing import Any
 
 from .base import BaseMetric
 
@@ -14,7 +14,7 @@ class FaithfulnessMetric(BaseMetric):
     def __init__(self) -> None:
         super().__init__(name="faithfulness")
 
-    def score(self, row: Dict[str, Any], backend: Any) -> float:
+    def score(self, row: dict[str, Any], backend: Any) -> float:
         question = row.get("question", "")
         context = row.get("context", "")
         answer = row.get("answer", "")

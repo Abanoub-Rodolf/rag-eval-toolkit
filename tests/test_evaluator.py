@@ -1,7 +1,10 @@
 import unittest
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
+
 from rag_eval.evaluator import RAGEvaluator
+
 
 class TestRAGEvaluator(unittest.TestCase):
     def setUp(self):
@@ -62,7 +65,8 @@ class TestRAGEvaluator(unittest.TestCase):
         assert len(calls) == 4
 
     def test_on_progress_fires_on_cache_hit(self):
-        import tempfile, os
+        import os
+        import tempfile
         with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
             db = f.name
         try:
@@ -124,11 +128,11 @@ class TestLazyBackendIsinstance(unittest.TestCase):
         assert issubclass(OpenAIBackend, OpenAIBackend) is True
 
     def test_issubclass_of_basebackend_without_resolving(self):
-        from rag_eval.backends import OpenAIBackend, BaseBackend
+        from rag_eval.backends import BaseBackend, OpenAIBackend
         assert issubclass(OpenAIBackend, BaseBackend) is True
 
     def test_unrelated_lazy_backends_not_subclass(self):
-        from rag_eval.backends import OpenAIBackend, AnthropicBackend
+        from rag_eval.backends import AnthropicBackend, OpenAIBackend
         assert issubclass(AnthropicBackend, OpenAIBackend) is False
 
     def test_isinstance_of_basebackend(self):

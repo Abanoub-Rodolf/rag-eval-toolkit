@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import MagicMock
+
 from rag_eval.metrics.utilization import ContextUtilizationMetric
+
 
 class TestContextUtilizationMetric(unittest.TestCase):
     def setUp(self):

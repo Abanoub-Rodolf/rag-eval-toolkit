@@ -1,5 +1,4 @@
-import pytest
-from rag_eval.metrics.base import _parse_score, BaseMetric
+from rag_eval.metrics.base import _parse_score
 
 
 class TestParseScore:

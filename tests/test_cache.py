@@ -1,5 +1,7 @@
 import os
+
 import pytest
+
 from rag_eval.utils.cache import EvaluationCache
 
 DB = "test_cache_unit.db"

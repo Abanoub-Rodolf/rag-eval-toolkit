@@ -1,5 +1,5 @@
 """Groundedness metric -- measures if the answer is grounded in the context (NLI-style)."""
-from typing import Any, Dict
+from typing import Any
 
 from .base import BaseMetric
 
@@ -14,7 +14,7 @@ class GroundednessMetric(BaseMetric):
     def __init__(self) -> None:
         super().__init__(name="groundedness")
 
-    def score(self, row: Dict[str, Any], backend: Any) -> float:
+    def score(self, row: dict[str, Any], backend: Any) -> float:
         context = row.get("context", "")
         answer = row.get("answer", "")
 

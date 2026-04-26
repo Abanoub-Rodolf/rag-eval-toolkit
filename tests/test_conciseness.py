@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import MagicMock
+
 from rag_eval.metrics.conciseness import ConcisenessMetric
+
 
 class TestConcisenessMetric(unittest.TestCase):
     def setUp(self):

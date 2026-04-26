@@ -1,5 +1,5 @@
 """Answer relevancy metric -- measures how well the answer addresses the question."""
-from typing import Any, Dict
+from typing import Any
 
 from .base import BaseMetric
 
@@ -14,7 +14,7 @@ class AnswerRelevancyMetric(BaseMetric):
     def __init__(self) -> None:
         super().__init__(name="answer_relevancy")
 
-    def score(self, row: Dict[str, Any], backend: Any) -> float:
+    def score(self, row: dict[str, Any], backend: Any) -> float:
         question = row.get("question", "")
         answer = row.get("answer", "")
 

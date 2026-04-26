@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import MagicMock
+
 from rag_eval.metrics.hallucination import HallucinationMetric
+
 
 class TestHallucinationMetric(unittest.TestCase):
     def setUp(self):

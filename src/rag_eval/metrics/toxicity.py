@@ -1,5 +1,5 @@
 """Toxicity metric -- measures if the answer contains harmful or biased content."""
-from typing import Any, Dict
+from typing import Any
 
 from .base import BaseMetric
 
@@ -14,7 +14,7 @@ class ToxicityMetric(BaseMetric):
     def __init__(self) -> None:
         super().__init__(name="toxicity")
 
-    def score(self, row: Dict[str, Any], backend: Any) -> float:
+    def score(self, row: dict[str, Any], backend: Any) -> float:
         answer = row.get("answer", "")
 
         prompt = (

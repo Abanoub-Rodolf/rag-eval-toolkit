@@ -1,4 +1,5 @@
 import os
+
 try:
     from openai import OpenAI
 except ImportError:
@@ -6,15 +7,16 @@ except ImportError:
 
 from .base import BaseBackend
 
+
 class OpenAIBackend(BaseBackend):
     def __init__(self, model: str = "gpt-4o"):
         if OpenAI is None:
             raise ImportError("Please install openai: pip install openai")
-        
+
         api_key = os.environ.get("OPENAI_API_KEY")
         if not api_key:
             raise ValueError("OPENAI_API_KEY environment variable is not set.")
-            
+
         self.client = OpenAI(api_key=api_key)
         self.model = model
 

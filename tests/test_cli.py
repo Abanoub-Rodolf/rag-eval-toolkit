@@ -1,9 +1,10 @@
 import json
 import os
+from unittest.mock import MagicMock, patch
+
 import pytest
 import yaml
 from click.testing import CliRunner
-from unittest.mock import MagicMock, patch
 
 from rag_eval.cli import main
 

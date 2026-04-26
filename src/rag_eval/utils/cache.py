@@ -3,7 +3,7 @@ import hashlib
 import json
 import sqlite3
 import threading
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 
 class EvaluationCache:
@@ -28,7 +28,7 @@ class EvaluationCache:
         )
         self._conn.commit()
 
-    def _key(self, metric_name: str, model_name: str, row: Dict[str, Any]) -> str:
+    def _key(self, metric_name: str, model_name: str, row: dict[str, Any]) -> str:
         context = row.get("context", "")
         if isinstance(context, list):
             context = "\n---\n".join(str(c) for c in context)
@@ -44,7 +44,7 @@ class EvaluationCache:
         }
         return hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
 
-    def get(self, metric_name: str, model_name: str, row: Dict[str, Any]) -> Optional[float]:
+    def get(self, metric_name: str, model_name: str, row: dict[str, Any]) -> Optional[float]:
         with self._lock:
             cursor = self._conn.execute(
                 "SELECT value FROM cache WHERE key = ?", (self._key(metric_name, model_name, row),)
@@ -52,7 +52,7 @@ class EvaluationCache:
             result = cursor.fetchone()
             return float(result[0]) if result else None
 
-    def set(self, metric_name: str, model_name: str, row: Dict[str, Any], score: float) -> None:
+    def set(self, metric_name: str, model_name: str, row: dict[str, Any], score: float) -> None:
         with self._lock:
             self._conn.execute(
                 "INSERT OR REPLACE INTO cache (key, value) VALUES (?, ?)",

@@ -2,7 +2,7 @@
 import logging
 import re
 from abc import ABC, abstractmethod
-from typing import Any, Dict
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ class BaseMetric(ABC):
         self.name = name
 
     @abstractmethod
-    def score(self, row: Dict[str, Any], backend: Any) -> float:
+    def score(self, row: dict[str, Any], backend: Any) -> float:
         """Compute a quality score for a single RAG sample.
 
         Args:

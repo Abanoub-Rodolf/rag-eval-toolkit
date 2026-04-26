@@ -19,8 +19,8 @@ class LiteLLMBackend(BaseBackend):
     def __init__(self, model: str = "gpt-4o", api_key: Optional[str] = None) -> None:
         try:
             import litellm  # noqa: F401
-        except ImportError:
-            raise ImportError("LiteLLM not installed. Run: pip install litellm")
+        except ImportError as exc:
+            raise ImportError("LiteLLM not installed. Run: pip install litellm") from exc
         self.model = model
         self.api_key = api_key
 

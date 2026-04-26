@@ -1,7 +1,7 @@
 """Ollama backend for local LLM-as-judge evaluation."""
 import logging
+
 import requests
-from typing import Optional
 
 from .base import BaseBackend
 

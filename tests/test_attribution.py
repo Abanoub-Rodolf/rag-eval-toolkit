@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import MagicMock
+
 from rag_eval.metrics.attribution import ChunkAttributionMetric
+
 
 class TestChunkAttributionMetric(unittest.TestCase):
     def setUp(self):

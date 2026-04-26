@@ -1,7 +1,8 @@
 """Semantic similarity metric -- measures the similarity between two strings using embeddings."""
 import logging
+from typing import Any
+
 import numpy as np
-from typing import Any, Dict, List
 
 from .base import BaseMetric
 
@@ -10,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class SemanticSimilarityMetric(BaseMetric):
     """Evaluates the semantic similarity between the answer and the ground truth.
-    
+
     This metric does not use an LLM-as-judge; instead, it compares embeddings.
     """
 
@@ -43,7 +44,7 @@ class SemanticSimilarityMetric(BaseMetric):
             return 0.0
         return float(np.dot(vec1, vec2) / (norm1 * norm2))
 
-    def score(self, row: Dict[str, Any], backend: Any) -> float:
+    def score(self, row: dict[str, Any], backend: Any) -> float:
         answer = row.get("answer", "")
         ground_truth = row.get("ground_truth", "")
 

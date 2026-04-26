@@ -1,20 +1,29 @@
-import click
 import json
 import os
 import sys
+
+import click
 import yaml
 from rich.console import Console
+from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn, TimeElapsedColumn
 from rich.table import Table
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
 
+from .backends import AnthropicBackend, GeminiBackend, LiteLLMBackend, OllamaBackend, OpenAIBackend
 from .evaluator import RAGEvaluator
-from .backends import OpenAIBackend, AnthropicBackend, OllamaBackend, GeminiBackend, LiteLLMBackend
 from .metrics import (
-    FaithfulnessMetric, AnswerRelevancyMetric,
-    ContextPrecisionMetric, ContextRecallMetric,
-    HallucinationMetric, ToxicityMetric, CoherenceMetric, ConcisenessMetric,
-    AnswerCompletenessMetric, ChunkAttributionMetric,
-    ContextUtilizationMetric, GroundednessMetric, SemanticSimilarityMetric,
+    AnswerCompletenessMetric,
+    AnswerRelevancyMetric,
+    ChunkAttributionMetric,
+    CoherenceMetric,
+    ConcisenessMetric,
+    ContextPrecisionMetric,
+    ContextRecallMetric,
+    ContextUtilizationMetric,
+    FaithfulnessMetric,
+    GroundednessMetric,
+    HallucinationMetric,
+    SemanticSimilarityMetric,
+    ToxicityMetric,
 )
 from .utils import load_dataset
 
