@@ -1,6 +1,5 @@
 # rag-eval-toolkit
 
-[![CI](https://github.com/rodolfboctor/rag-eval-toolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/rodolfboctor/rag-eval-toolkit/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -28,7 +27,7 @@ pip install rag-eval-toolkit[all]
 Or from source:
 
 ```bash
-git clone https://github.com/rodolfboctor/rag-eval-toolkit
+git clone https://gitlab.com/abanoub.rodolf/rag-eval-toolkit.git
 cd rag-eval-toolkit
 pip install -e ".[all]"
 ```
@@ -194,7 +193,7 @@ PRs welcome. Open an issue first to discuss major changes. Run `PYTHONPATH=src p
 
 ## Author
 
-**Abanoub Rodolf Boctor** - [GitHub](https://github.com/rodolfboctor) - [LinkedIn](https://linkedin.com/in/abanoubrodolf)
+**Abanoub Rodolf Boctor** - [GitLab](https://gitlab.com/abanoub.rodolf) - [LinkedIn](https://linkedin.com/in/abanoubrodolf)
 
 ## License
 

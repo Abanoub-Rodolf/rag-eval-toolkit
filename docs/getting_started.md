@@ -9,7 +9,7 @@ pip install rag-eval-toolkit[all]
 Or from source:
 
 ```bash
-git clone https://github.com/rodolfboctor/rag-eval-toolkit
+git clone https://gitlab.com/abanoub.rodolf/rag-eval-toolkit.git
 cd rag-eval-toolkit
 pip install -e ".[all]"
 ```
