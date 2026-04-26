@@ -8,12 +8,13 @@ version = "1.0.0"
 description = "Production-grade toolkit for evaluating RAG (Retrieval-Augmented Generation) pipelines."
 readme = "README.md"
 authors = [{ name = "Abanoub Rodolf Boctor", email = "abanoub.rodolf@gmail.com" }]
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.9"
+keywords = ["rag", "evaluation", "llm", "retrieval", "generation", "ragas", "benchmark"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -29,14 +30,18 @@ dependencies = [
     "numpy>=1.20.0",
 ]
 
+[project.urls]
+Homepage = "https://gitlab.com/abanoub.rodolf/rag-eval-toolkit"
+Repository = "https://gitlab.com/abanoub.rodolf/rag-eval-toolkit"
+Issues = "https://gitlab.com/abanoub.rodolf/rag-eval-toolkit/-/issues"
+
 [project.optional-dependencies]
 openai = ["openai>=1.0.0"]
 anthropic = ["anthropic>=0.25.0"]
 gemini = ["google-genai>=1.0.0"]
 ollama = []
 litellm = ["litellm>=1.0.0"]
-report = []
-dev = ["pytest>=7.0.0", "pytest-asyncio>=0.21.0"]
+dev = ["pytest>=7.0.0", "pytest-asyncio>=0.21.0", "ruff>=0.4.0"]
 all = [
     "openai>=1.0.0",
     "anthropic>=0.25.0",
@@ -47,11 +52,16 @@ all = [
 [project.scripts]
 rag-eval = "rag_eval.cli:main"
 
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
 [tool.ruff]
 line-length = 100
+
+[tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "B", "C4", "UP"]
 ignore = ["E501"]
-
-[tool.mypy]
-strict = true
-ignore_missing_imports = true
