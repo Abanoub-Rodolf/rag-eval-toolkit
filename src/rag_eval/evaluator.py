@@ -1,4 +1,4 @@
-"""RAG Eval Toolkit — Core evaluator module."""
+"""Core RAG evaluation orchestrator."""
 import asyncio
 import logging
 from typing import Any, Dict, List, Optional
@@ -8,7 +8,7 @@ from rag_eval.metrics.base import BaseMetric
 
 logger = logging.getLogger(__name__)
 
-_DEFAULT_CONCURRENCY = 20  # max concurrent scoring tasks
+_DEFAULT_CONCURRENCY = 20
 
 
 class RAGEvaluator:

@@ -47,7 +47,7 @@ BACKEND_MAP = {
 
 @click.group()
 def main():
-    """RAG Evaluation Toolkit — CLI"""
+    """RAG Evaluation Toolkit CLI."""
     pass
 
 
@@ -130,7 +130,7 @@ def run(config, dataset, backend, model, output, cache_path, report):
 
     total_steps = len(data) * len(evaluator.metrics)
     console.print(
-        f"[bold]Starting evaluation[/bold] — {len(data)} samples, "
+        f"[bold]Starting evaluation[/bold]: {len(data)} samples, "
         f"{len(evaluator.metrics)} metrics, backend={backend_name}"
     )
 

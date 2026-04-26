@@ -64,8 +64,7 @@ class EvaluationCache:
         self._conn.close()
 
     def __del__(self) -> None:
-        # avoid acquiring _lock here — at interpreter shutdown the threading
-        # module may have already been torn down, making Lock objects unusable
+        # threading module may be torn down at interpreter shutdown, skip the lock
         try:
             self._conn.close()
         except Exception:

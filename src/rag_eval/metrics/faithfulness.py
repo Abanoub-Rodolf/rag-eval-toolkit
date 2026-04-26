@@ -21,7 +21,7 @@ class FaithfulnessMetric(BaseMetric):
 
         prompt = (
             "You are an impartial judge evaluating RAG output quality.\n\n"
-            "Evaluate whether the answer is faithful to the context — every claim "
+            "Evaluate whether the answer is faithful to the context. Every claim "
             "must be traceable back to the context with no hallucinated additions.\n\n"
             f"<context>{context}</context>\n"
             f"<question>{question}</question>\n"

@@ -15,7 +15,6 @@ class SemanticSimilarityMetric(BaseMetric):
     """
 
     def __init__(self) -> None:
-        """Initialise SemanticSimilarityMetric."""
         super().__init__(name="semantic_similarity")
 
     def _get_embedding(self, text: str, backend: Any) -> np.ndarray:
@@ -45,15 +44,6 @@ class SemanticSimilarityMetric(BaseMetric):
         return float(np.dot(vec1, vec2) / (norm1 * norm2))
 
     def score(self, row: Dict[str, Any], backend: Any) -> float:
-        """Score for semantic similarity.
-        
-        Args:
-            row: Must contain 'answer' and 'ground_truth' keys.
-            backend: Backend instance that supports embedding.
-            
-        Returns:
-            Float in [0.0, 1.0].
-        """
         answer = row.get("answer", "")
         ground_truth = row.get("ground_truth", "")
 
