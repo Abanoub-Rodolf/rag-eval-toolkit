@@ -75,18 +75,27 @@ def run(config, dataset, backend, model, output, cache_path, report):
     """Run evaluation based on config or CLI flags."""
     cfg: dict = {}
     if config:
-        with open(config) as f:
-            cfg = yaml.safe_load(f) or {}
+        try:
+            with open(config) as f:
+                cfg = yaml.safe_load(f) or {}
+        except yaml.YAMLError as exc:
+            console.print(f"[red]error:[/red] could not parse YAML config: {exc}")
+            sys.exit(1)
 
     dataset_path = dataset or cfg.get("dataset")
     backend_name = backend or cfg.get("backend", "openai")
     model_name = model or cfg.get("model")
     output_path = output or cfg.get("output", "report.json")
-    effective_cache = cache_path or cfg.get("cache_path")  # None = no caching
+    effective_cache = cache_path or cfg.get("cache_path")
     metrics_list = cfg.get("metrics", ["faithfulness", "answer_relevancy"])
 
     if not dataset_path:
         console.print("[red]error:[/red] dataset path required (--dataset or config)")
+        sys.exit(1)
+
+    out_dir = os.path.dirname(os.path.abspath(output_path))
+    if not os.access(out_dir, os.W_OK):
+        console.print(f"[red]error:[/red] output dir not writable: {out_dir}")
         sys.exit(1)
 
     backend_cls = BACKEND_MAP[backend_name]
@@ -142,14 +151,22 @@ def run(config, dataset, backend, model, output, cache_path, report):
         table.add_row(name, f"{avg:.4f}")
     console.print(table)
 
-    with open(output_path, "w") as f:
-        json.dump(results, f, indent=2)
+    try:
+        with open(output_path, "w") as f:
+            json.dump(results, f, indent=2)
+    except OSError as exc:
+        console.print(f"[red]error:[/red] could not write {output_path}: {exc}")
+        sys.exit(1)
     console.print(f"Results saved to [bold]{output_path}[/bold]")
 
     if report or cfg.get("report"):
         base, _ = os.path.splitext(output_path)
         report_path = base + ".html"
-        evaluator.generate_report(results, output=report_path)
+        try:
+            evaluator.generate_report(results, output=report_path)
+        except OSError as exc:
+            console.print(f"[red]error:[/red] could not write report: {exc}")
+            sys.exit(1)
         console.print(f"HTML report at [bold]{report_path}[/bold]")
 
 

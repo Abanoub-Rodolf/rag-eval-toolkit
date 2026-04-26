@@ -62,13 +62,12 @@ class TestRAGEvaluator(unittest.TestCase):
         assert len(calls) == 4
 
     def test_on_progress_fires_on_cache_hit(self):
-        """Cache hits must still fire on_progress so the bar reaches 100%."""
         import tempfile, os
         with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
             db = f.name
         try:
             backend = MagicMock()
-            backend.model = "test-model"  # must be a string for JSON serialization in cache key
+            backend.model = "test-model"
             ev = RAGEvaluator(backend=backend, cache_path=db)
             m = MagicMock()
             m.name = "faithfulness"
@@ -76,17 +75,71 @@ class TestRAGEvaluator(unittest.TestCase):
             ev.add_metric(m)
             row = {"question": "q", "context": "c", "answer": "a"}
 
-            # first call — populates cache
             calls = []
             ev.evaluate([row], on_progress=lambda: calls.append(1))
             assert len(calls) == 1
 
-            # second call — cache hit path
             calls2 = []
             ev.evaluate([row], on_progress=lambda: calls2.append(1))
             assert len(calls2) == 1
         finally:
             os.unlink(db)
+
+    def test_on_progress_fires_on_metric_exception(self):
+        """Progress bar must reach 100% even when metric.score raises."""
+        boom = MagicMock()
+        boom.name = "boom"
+        boom.score.side_effect = RuntimeError("kaboom")
+        good = MagicMock()
+        good.name = "good"
+        good.score.return_value = 0.5
+        self.evaluator.add_metric(boom)
+        self.evaluator.add_metric(good)
+        calls = []
+        self.evaluator.evaluate(
+            [{"question": "q", "context": "c", "answer": "a"}],
+            on_progress=lambda: calls.append(1),
+        )
+        assert len(calls) == 2
+
+    def test_on_progress_callback_exception_does_not_crash(self):
+        m = MagicMock()
+        m.name = "m"
+        m.score.return_value = 0.5
+        self.evaluator.add_metric(m)
+
+        def bad_cb():
+            raise RuntimeError("callback exploded")
+
+        results = self.evaluator.evaluate(
+            [{"question": "q", "context": "c", "answer": "a"}],
+            on_progress=bad_cb,
+        )
+        assert results["averages"]["m"] == 0.5
+
+
+class TestLazyBackendIsinstance(unittest.TestCase):
+    def test_issubclass_self_is_true(self):
+        from rag_eval.backends import OpenAIBackend
+        assert issubclass(OpenAIBackend, OpenAIBackend) is True
+
+    def test_issubclass_of_basebackend_without_resolving(self):
+        from rag_eval.backends import OpenAIBackend, BaseBackend
+        assert issubclass(OpenAIBackend, BaseBackend) is True
+
+    def test_unrelated_lazy_backends_not_subclass(self):
+        from rag_eval.backends import OpenAIBackend, AnthropicBackend
+        assert issubclass(AnthropicBackend, OpenAIBackend) is False
+
+    def test_isinstance_of_basebackend(self):
+        from rag_eval.backends import BaseBackend
+
+        class FakeBackend(BaseBackend):
+            model = "fake"
+            def generate(self, prompt: str) -> str:
+                return "0.5"
+
+        assert isinstance(FakeBackend(), BaseBackend) is True
 
 
 if __name__ == "__main__":

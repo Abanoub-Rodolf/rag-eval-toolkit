@@ -1,23 +1,24 @@
+from abc import ABCMeta
+
 from .base import BaseBackend
 
 
-class _LazyMeta(type):
-    """Metaclass so isinstance(backend, OpenAIBackend) resolves against the real class."""
+class _LazyMeta(ABCMeta):
+    """Metaclass so isinstance/issubclass resolve against the real backend class."""
 
     def __instancecheck__(cls, instance):
         return isinstance(instance, cls._resolve())
 
     def __subclasscheck__(cls, subclass):
+        if subclass is cls:
+            return True
+        if isinstance(subclass, _LazyMeta):
+            subclass = subclass._resolve()
         return issubclass(subclass, cls._resolve())
 
 
 def _lazy_backend(name: str, module: str, cls_name: str) -> type:
-    """Return a lazy-loading class proxy that defers the import until first call.
-
-    The proxy has empty bases () — not BaseBackend. isinstance/issubclass still
-    work correctly because _LazyMeta delegates both checks to the real class,
-    which is a proper BaseBackend subclass.
-    """
+    """Lazy-loading class proxy. The real backend module imports on first use."""
 
     def _resolve():
         if _cls_cache[0] is None:
@@ -30,7 +31,7 @@ def _lazy_backend(name: str, module: str, cls_name: str) -> type:
 
     proxy = _LazyMeta(
         name,
-        (),
+        (BaseBackend,),
         {
             "_resolve": staticmethod(_resolve),
             "__new__": lambda cls, *a, **kw: _resolve()(*a, **kw),

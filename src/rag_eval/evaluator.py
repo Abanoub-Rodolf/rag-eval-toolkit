@@ -88,23 +88,26 @@ class RAGEvaluator:
         per_metric_scores: Dict[str, List[float]] = {m.name: [] for m in self.metrics}
 
         async def score_task(metric: Any, item: Dict[str, Any]) -> float:
-            model_name = getattr(self.backend, "model", "default")
-            if self.cache:
-                cached = self.cache.get(metric.name, model_name, item)
-                if cached is not None:
-                    if on_progress is not None:
+            try:
+                model_name = getattr(self.backend, "model", "default")
+                if self.cache:
+                    cached = self.cache.get(metric.name, model_name, item)
+                    if cached is not None:
+                        return cached
+
+                async with sem:
+                    loop = asyncio.get_running_loop()
+                    score = await loop.run_in_executor(None, metric.score, item, self.backend)
+
+                if self.cache:
+                    self.cache.set(metric.name, model_name, item, score)
+                return score
+            finally:
+                if on_progress is not None:
+                    try:
                         on_progress()
-                    return cached
-
-            async with sem:
-                loop = asyncio.get_running_loop()
-                score = await loop.run_in_executor(None, metric.score, item, self.backend)
-
-            if self.cache:
-                self.cache.set(metric.name, model_name, item, score)
-            if on_progress is not None:
-                on_progress()
-            return score
+                    except Exception:
+                        logger.exception("on_progress callback raised")
 
         tasks = [
             score_task(metric, item)

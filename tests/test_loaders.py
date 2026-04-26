@@ -62,3 +62,43 @@ def test_unsupported_extension_raises():
             load_dataset(path)
     finally:
         os.unlink(path)
+
+
+def test_jsonl_with_utf8_bom():
+    content = "﻿" + json.dumps({"q": "ok"}) + "\n"
+    path = _write(".jsonl", content)
+    try:
+        data = load_dataset(path)
+        assert data == [{"q": "ok"}]
+    finally:
+        os.unlink(path)
+
+
+def test_csv_with_utf8_bom_preserves_keys():
+    content = "﻿question,answer\nQ?,A\n"
+    path = _write(".csv", content)
+    try:
+        data = load_dataset(path)
+        assert "question" in data[0]
+        assert "﻿question" not in data[0]
+    finally:
+        os.unlink(path)
+
+
+def test_json_with_utf8_bom():
+    path = _write(".json", "﻿" + json.dumps([{"q": "ok"}]))
+    try:
+        data = load_dataset(path)
+        assert data == [{"q": "ok"}]
+    finally:
+        os.unlink(path)
+
+
+def test_jsonl_skips_comments_and_blank_lines():
+    content = "# header comment\n" + json.dumps({"i": 1}) + "\n\n  \n# mid\n" + json.dumps({"i": 2}) + "\n"
+    path = _write(".jsonl", content)
+    try:
+        data = load_dataset(path)
+        assert data == [{"i": 1}, {"i": 2}]
+    finally:
+        os.unlink(path)
