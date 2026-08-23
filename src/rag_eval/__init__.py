@@ -1,6 +1,6 @@
-"""rag-eval-toolkit: production-grade framework for evaluating RAG pipelines."""
+"""rag-eval-toolkit: RAG evaluation with readable LLM-judge prompts."""
 
-__version__ = "1.0.0"
+__version__ = "3.0.0"
 
 from rag_eval.backends import (
     AnthropicBackend,
@@ -27,10 +27,12 @@ from rag_eval.metrics import (
     SemanticSimilarityMetric,
     ToxicityMetric,
 )
+from rag_eval.reliability import measure_reliability
 from rag_eval.utils import format_score, load_dataset, save_results_to_csv
 
 __all__ = [
     "RAGEvaluator",
+    "measure_reliability",
     "BaseBackend",
     "OpenAIBackend",
     "AnthropicBackend",

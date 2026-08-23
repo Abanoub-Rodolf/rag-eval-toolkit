@@ -4,16 +4,16 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rag-eval-toolkit"
-version = "1.0.0"
-description = "Production-grade toolkit for evaluating RAG (Retrieval-Augmented Generation) pipelines."
+version = "3.0.0"
+description = "RAG evaluation toolkit with readable LLM-judge prompts and local-first (Ollama) support."
 readme = "README.md"
 authors = [{ name = "Abanoub Rodolf Boctor", email = "abanoub.rodolf@gmail.com" }]
 license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.9"
-keywords = ["rag", "evaluation", "llm", "retrieval", "generation", "ragas", "benchmark"]
+keywords = ["rag", "evaluation", "llm", "retrieval", "generation", "ragas", "benchmark", "llm-as-judge"]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
