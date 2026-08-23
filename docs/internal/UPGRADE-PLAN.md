@@ -1,4 +1,4 @@
-# RAG Evaluation Toolkit v1.0 — Upgrade Plan
+# RAG Evaluation Toolkit v1.0 - Upgrade Plan
 
 ## 1. Metric Roadmap (Prioritized)
 

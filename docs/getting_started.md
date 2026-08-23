@@ -51,6 +51,10 @@ rag-eval run --config eval_config.yaml
 
 # Or use CLI flags directly
 rag-eval run --dataset data.jsonl --backend ollama --model llama3
+
+# Measure judge test-retest reliability (self-consistency, not accuracy --
+# see the README Limitations section)
+rag-eval reliability --dataset data.jsonl --backend ollama --model llama3 --runs 5
 ```
 
 ## Available metrics
@@ -73,13 +77,13 @@ rag-eval run --dataset data.jsonl --backend ollama --model llama3
 
 ## Backends
 
-| Backend | Env var | Install extra |
-|---------|---------|---------------|
-| OpenAI | `OPENAI_API_KEY` | `[openai]` |
-| Anthropic | `ANTHROPIC_API_KEY` | `[anthropic]` |
-| Ollama | (none, runs locally) | `[ollama]` |
-| Google Gemini | `GOOGLE_API_KEY` | `[gemini]` |
-| LiteLLM | (varies by provider) | `[litellm]` |
+| Backend | Env var | Default model | Install extra |
+|---------|---------|----------------|---------------|
+| OpenAI | `OPENAI_API_KEY` | `gpt-5.1` | `[openai]` |
+| Anthropic | `ANTHROPIC_API_KEY` | `claude-sonnet-5` | `[anthropic]` |
+| Ollama | (none, runs locally) | `llama3` | `[ollama]` |
+| Google Gemini | `GOOGLE_API_KEY` | `gemini-2.5-flash` | `[gemini]` |
+| LiteLLM | (varies by provider) | `gpt-5.1` | `[litellm]` |
 
 ## Dataset format
 
@@ -93,7 +97,8 @@ JSON, JSONL, or CSV. Each row needs at minimum:
 }
 ```
 
-Some metrics also use `ground_truth` (optional).
+`context_recall` and `semantic_similarity` require a non-empty `ground_truth`
+field and raise `ValueError` without one; the rest treat it as optional.
 
 ## Custom metrics
 

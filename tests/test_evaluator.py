@@ -106,6 +106,43 @@ class TestRAGEvaluator(unittest.TestCase):
         )
         assert len(calls) == 2
 
+    def test_metric_exception_excluded_from_average_not_zeroed(self):
+        """A metric that raises must not silently count as a 0.0 score."""
+        boom = MagicMock()
+        boom.name = "boom"
+        boom.score.side_effect = RuntimeError("kaboom")
+        self.evaluator.add_metric(boom)
+        dataset = [
+            {"question": "q1", "context": "c1", "answer": "a1"},
+            {"question": "q2", "context": "c2", "answer": "a2"},
+        ]
+        results = self.evaluator.evaluate(dataset)
+        assert "boom" not in results["averages"]
+        assert results["per_sample"]["boom"] == [None, None]
+        assert results["errors"]["boom"] == 2
+
+    def test_partial_failure_averages_only_successful_samples(self):
+        flaky = MagicMock()
+        flaky.name = "flaky"
+        flaky.score.side_effect = [0.8, RuntimeError("timeout")]
+        self.evaluator.add_metric(flaky)
+        dataset = [
+            {"question": "q1", "context": "c1", "answer": "a1"},
+            {"question": "q2", "context": "c2", "answer": "a2"},
+        ]
+        results = self.evaluator.evaluate(dataset)
+        assert results["averages"]["flaky"] == 0.8
+        assert results["per_sample"]["flaky"] == [0.8, None]
+        assert results["errors"]["flaky"] == 1
+
+    def test_errors_key_present_with_zero_count_on_success(self):
+        m = MagicMock()
+        m.name = "clean"
+        m.score.return_value = 0.5
+        self.evaluator.add_metric(m)
+        results = self.evaluator.evaluate([{"question": "q", "context": "c", "answer": "a"}])
+        assert results["errors"] == {"clean": 0}
+
     def test_on_progress_callback_exception_does_not_crash(self):
         m = MagicMock()
         m.name = "m"

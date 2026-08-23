@@ -5,9 +5,13 @@ Usage:
     export ANTHROPIC_API_KEY=your_key_here
     python examples/basic_evaluation.py
 """
-from rag_eval import RAGEvaluator, AnthropicBackend
-from rag_eval import FaithfulnessMetric, AnswerRelevancyMetric, HallucinationMetric
-
+from rag_eval import (
+    AnswerRelevancyMetric,
+    AnthropicBackend,
+    FaithfulnessMetric,
+    HallucinationMetric,
+    RAGEvaluator,
+)
 
 SAMPLE_DATASET = [
     {

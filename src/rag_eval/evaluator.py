@@ -72,7 +72,10 @@ class RAGEvaluator:
                 score completes. Fires ``len(dataset) * len(metrics)`` times total.
 
         Returns:
-            Dict with ``averages`` (per-metric mean) and ``per_sample`` (all scores).
+            Dict with ``averages`` (per-metric mean over successfully scored
+            samples), ``per_sample`` (per-metric score list, ``None`` where
+            scoring failed), and ``errors`` (per-metric count of samples
+            excluded from the average because scoring raised).
         """
         if not dataset:
             raise ValueError("Dataset must not be empty.")
@@ -82,7 +85,7 @@ class RAGEvaluator:
         # re-create semaphore inside the running loop
         sem = asyncio.Semaphore(self._max_concurrency)
 
-        per_metric_scores: dict[str, list[float]] = {m.name: [] for m in self.metrics}
+        per_metric_scores: dict[str, list[Optional[float]]] = {m.name: [] for m in self.metrics}
 
         async def score_task(metric: Any, item: dict[str, Any]) -> float:
             try:
@@ -114,23 +117,27 @@ class RAGEvaluator:
 
         raw_results = await asyncio.gather(*tasks, return_exceptions=True)
 
+        per_metric_errors: dict[str, int] = {m.name: 0 for m in self.metrics}
+
         idx = 0
         for _item in dataset:
             for metric in self.metrics:
                 res = raw_results[idx]
                 if isinstance(res, Exception):
-                    logger.error("Error scoring %s: %s", metric.name, res)
-                    per_metric_scores[metric.name].append(0.0)
+                    logger.error("Error scoring %s: %s: %s", metric.name, type(res).__name__, res)
+                    per_metric_scores[metric.name].append(None)
+                    per_metric_errors[metric.name] += 1
                 else:
                     per_metric_scores[metric.name].append(max(0.0, min(1.0, float(res))))
                 idx += 1
 
-        averages = {
-            name: round(sum(scores) / len(scores), 4)
-            for name, scores in per_metric_scores.items()
-            if scores
-        }
-        return {"averages": averages, "per_sample": per_metric_scores}
+        averages = {}
+        for name, scores in per_metric_scores.items():
+            valid = [s for s in scores if s is not None]
+            if valid:
+                averages[name] = round(sum(valid) / len(valid), 4)
+
+        return {"averages": averages, "per_sample": per_metric_scores, "errors": per_metric_errors}
 
     def generate_report(
         self, results: dict[str, Any], output: str = "eval_report.html"
