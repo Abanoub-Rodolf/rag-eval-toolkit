@@ -1,7 +1,15 @@
-"""Answer relevancy metric -- measures how well the answer addresses the question."""
+"""Answer relevancy metric -- measures how well the answer addresses the question.
+
+Ragas' original definition (Es et al., 2023) generates several candidate
+questions from the answer and scores relevancy as embedding similarity
+between those and the original question. This implementation uses a direct
+LLM judgment instead: one call, no embedding-model dependency, at the cost of
+Ragas' noise-averaging across generated questions. For the original method,
+compose SemanticSimilarityMetric with your own question-generation step.
+"""
 from typing import Any
 
-from .base import BaseMetric
+from .base import BaseMetric, _judge_prompt
 
 
 class AnswerRelevancyMetric(BaseMetric):
@@ -15,16 +23,21 @@ class AnswerRelevancyMetric(BaseMetric):
         super().__init__(name="answer_relevancy")
 
     def score(self, row: dict[str, Any], backend: Any) -> float:
-        question = row.get("question", "")
-        answer = row.get("answer", "")
-
-        prompt = (
-            "You are an impartial judge evaluating RAG output quality.\n\n"
-            "Evaluate how directly and completely the answer addresses the question.\n\n"
-            f"<question>{question}</question>\n"
-            f"<answer>{answer}</answer>\n\n"
-            "Respond ONLY with a single float score from 0.0 to 1.0.\n"
-            "0.0 = completely irrelevant\n"
-            "1.0 = perfectly answers the question"
+        prompt = _judge_prompt(
+            role="RAG answer relevancy",
+            instructions=(
+                "Judge how directly and completely the answer addresses the "
+                "question. An answer that is factually fine but evasive, "
+                "off-topic, or answers a different question than the one asked "
+                "should score low regardless of its own internal quality."
+            ),
+            fields={
+                "question": row.get("question", ""),
+                "answer": row.get("answer", ""),
+            },
+            score_meaning=(
+                "0.0 = completely irrelevant to the question\n"
+                "1.0 = directly and completely answers the question"
+            ),
         )
         return self._generate_score(backend, prompt)

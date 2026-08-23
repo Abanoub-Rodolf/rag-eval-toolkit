@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import MagicMock
 
-from rag_eval.metrics.semantic_similarity import SemanticSimilarityMetric
+from rag_eval.metrics.semantic_similarity import BackendCapabilityError, SemanticSimilarityMetric
 
 
 class TestSemanticSimilarityMetric(unittest.TestCase):
@@ -22,10 +22,23 @@ class TestSemanticSimilarityMetric(unittest.TestCase):
         score = self.metric.score(row, self.mock_backend)
         self.assertEqual(score, 0.0)
 
-    def test_score_missing_ground_truth(self):
+    def test_score_missing_ground_truth_raises(self):
         row = {"answer": "a"}
-        score = self.metric.score(row, self.mock_backend)
-        self.assertEqual(score, 0.0)
+        with self.assertRaises(ValueError):
+            self.metric.score(row, self.mock_backend)
+
+    def test_backend_empty_embedding_raises_capability_error(self):
+        # An embed() that fails must not degrade into a silent 0.0 cosine score
+        self.mock_backend.embed.return_value = []
+        row = {"answer": "a", "ground_truth": "b"}
+        with self.assertRaises(BackendCapabilityError):
+            self.metric.score(row, self.mock_backend)
+
+    def test_backend_without_embed_raises_capability_error(self):
+        backend = MagicMock(spec=[])  # no attributes at all, including embed
+        row = {"answer": "a", "ground_truth": "b"}
+        with self.assertRaises(BackendCapabilityError):
+            self.metric.score(row, backend)
 
 if __name__ == "__main__":
     unittest.main()

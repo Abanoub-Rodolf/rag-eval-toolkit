@@ -68,7 +68,8 @@ class TestGenerateHtmlReport:
 
     def test_html_report_generator_class(self, sample_results, tmp_path):
         out = str(tmp_path / "report.html")
-        gen = HTMLReportGenerator()
+        with pytest.warns(DeprecationWarning):
+            gen = HTMLReportGenerator()
         gen.generate(sample_results, out)
         assert os.path.exists(out)
 
@@ -102,6 +103,18 @@ class TestGenerateHtmlReport:
         assert "width:150px" not in content
         assert "width:100px" in content
 
+    def test_none_per_sample_score_renders_as_error_marker(self, tmp_path):
+        """A None entry (metric errored on that sample) must render, not crash."""
+        results = {
+            "averages": {"faithfulness": 0.9},
+            "per_sample": {"faithfulness": [0.9, None]},
+        }
+        out = str(tmp_path / "report.html")
+        generate_html_report(results, out)
+        content = open(out).read()
+        assert "<em>error</em>" in content
+        assert "0.9000" in content
+
     def test_score_bar_clamps_negative(self, tmp_path):
         results = {"averages": {"m": -0.3}, "per_sample": {"m": [-0.3]}}
         out = str(tmp_path / "report.html")
@@ -109,3 +122,16 @@ class TestGenerateHtmlReport:
         content = open(out).read()
         assert "width:-30px" not in content
         assert "width:0px" in content
+
+
+class TestHTMLReportGeneratorDeprecation:
+    def test_generate_emits_deprecation_warning(self, sample_results, tmp_path):
+        import warnings
+
+        from rag_eval.report.generator import HTMLReportGenerator
+
+        out = str(tmp_path / "report.html")
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            HTMLReportGenerator().generate(sample_results, out)
+        assert any(issubclass(w.category, DeprecationWarning) for w in caught)

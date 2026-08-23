@@ -5,6 +5,8 @@ import sqlite3
 import threading
 from typing import Any, Optional
 
+from .helpers import flatten_context
+
 
 class EvaluationCache:
     """Persistent cache for per-sample metric scores.
@@ -29,9 +31,7 @@ class EvaluationCache:
         self._conn.commit()
 
     def _key(self, metric_name: str, model_name: str, row: dict[str, Any]) -> str:
-        context = row.get("context", "")
-        if isinstance(context, list):
-            context = "\n---\n".join(str(c) for c in context)
+        context = flatten_context(row.get("context", ""))
         payload = {
             "metric": metric_name,
             "model": model_name,

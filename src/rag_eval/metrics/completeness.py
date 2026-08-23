@@ -1,7 +1,7 @@
 """Answer completeness metric -- measures if the answer addresses all parts of the question."""
 from typing import Any
 
-from .base import BaseMetric
+from .base import BaseMetric, _judge_prompt
 
 
 class AnswerCompletenessMetric(BaseMetric):
@@ -15,17 +15,21 @@ class AnswerCompletenessMetric(BaseMetric):
         super().__init__(name="completeness")
 
     def score(self, row: dict[str, Any], backend: Any) -> float:
-        question = row.get("question", "")
-        answer = row.get("answer", "")
-
-        prompt = (
-            "You are an impartial judge evaluating RAG output quality.\n\n"
-            "Evaluate the completeness of the answer: does it address all components "
-            "and sub-questions contained in the question?\n\n"
-            f"<question>{question}</question>\n"
-            f"<answer>{answer}</answer>\n\n"
-            "Respond ONLY with a single float score from 0.0 to 1.0.\n"
-            "1.0 = all parts of the question fully addressed\n"
-            "0.0 = answer fails to address the question or misses almost all parts"
+        prompt = _judge_prompt(
+            role="RAG answer completeness",
+            instructions=(
+                "Identify every distinct component or sub-question in the "
+                "question, then check whether the answer addresses each one. "
+                "A fluent answer that fully covers one part of a multi-part "
+                "question but ignores the rest is incomplete, not complete."
+            ),
+            fields={
+                "question": row.get("question", ""),
+                "answer": row.get("answer", ""),
+            },
+            score_meaning=(
+                "0.0 = fails to address the question or misses almost all parts\n"
+                "1.0 = all parts of the question are fully addressed"
+            ),
         )
         return self._generate_score(backend, prompt)

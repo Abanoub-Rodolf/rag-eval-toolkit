@@ -1,7 +1,8 @@
 """Chunk attribution metric -- measures if the answer accurately cites context chunks."""
 from typing import Any
 
-from .base import BaseMetric
+from ..utils.helpers import flatten_context
+from .base import BaseMetric, _judge_prompt
 
 
 class ChunkAttributionMetric(BaseMetric):
@@ -15,22 +16,20 @@ class ChunkAttributionMetric(BaseMetric):
         super().__init__(name="chunk_attribution")
 
     def score(self, row: dict[str, Any], backend: Any) -> float:
-        context = row.get("context", "")
-        answer = row.get("answer", "")
+        context = flatten_context(row.get("context", ""))
 
-        # normalise list context to a single string for consistent prompt/cache behaviour
-        if isinstance(context, list):
-            context = "\n---\n".join(str(c) for c in context)
-
-        prompt = (
-            "You are an impartial judge evaluating RAG output quality.\n\n"
-            "Evaluate how accurately the answer attributes its claims to the source "
-            "context chunks provided. Claims requiring citation should reference the "
-            "correct chunk.\n\n"
-            f"<context_chunks>{context}</context_chunks>\n"
-            f"<answer>{answer}</answer>\n\n"
-            "Respond ONLY with a single float score from 0.0 to 1.0.\n"
-            "1.0 = all claims correctly and accurately attributed to source chunks\n"
-            "0.0 = many claims misattributed or attribution missing entirely"
+        prompt = _judge_prompt(
+            role="RAG citation attribution",
+            instructions=(
+                "Judge how accurately the answer attributes its claims to the "
+                "source context chunks provided. Claims requiring citation "
+                "should reference the chunk that actually supports them, not "
+                "just any chunk."
+            ),
+            fields={"context_chunks": context, "answer": row.get("answer", "")},
+            score_meaning=(
+                "0.0 = claims are misattributed or attribution is missing entirely\n"
+                "1.0 = all claims are correctly and accurately attributed to source chunks"
+            ),
         )
         return self._generate_score(backend, prompt)

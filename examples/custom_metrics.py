@@ -3,7 +3,7 @@
 Extend BaseMetric and implement score(). The metric receives the dataset row
 and an LLM backend, and returns a float in [0.0, 1.0].
 """
-from typing import Any, Dict
+from typing import Any
 
 from rag_eval import BaseMetric
 
@@ -14,7 +14,7 @@ class FactualDensityMetric(BaseMetric):
     def __init__(self):
         super().__init__(name="factual_density")
 
-    def score(self, row: Dict[str, Any], backend) -> float:
+    def score(self, row: dict[str, Any], backend) -> float:
         answer = row.get("answer", "")
         prompt = (
             "Count the factual claims in this answer and rate how information-dense it is.\n\n"
@@ -25,10 +25,9 @@ class FactualDensityMetric(BaseMetric):
             "Only return the number, nothing else."
         )
         response = backend.generate(prompt)
-        try:
-            return max(0.0, min(1.0, float(response.strip())))
-        except ValueError:
-            return 0.0
+        # Let a bad judge response raise: RAGEvaluator excludes failed samples
+        # and reports them under results["errors"] -- never fake a 0.0 score.
+        return max(0.0, min(1.0, float(response.strip())))
 
 
 if __name__ == "__main__":

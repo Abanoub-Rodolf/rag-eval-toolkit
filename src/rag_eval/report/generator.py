@@ -1,6 +1,7 @@
 """HTML report generation for evaluation results."""
 import html as _html
 import json
+import warnings
 from typing import Any
 
 
@@ -33,7 +34,8 @@ def generate_html_report(results: dict[str, Any], output_path: str) -> None:
         body = ""
         for i in range(n):
             cols = "".join(
-                f"<td>{per_sample[m][i]:.4f}</td>" for m in metrics
+                f"<td>{_format_cell(per_sample[m][i]) if i < len(per_sample[m]) else '-'}</td>"
+                for m in metrics
             )
             body += f"<tr><td>{i + 1}</td>{cols}</tr>"
         sample_rows = f"<h2>Per-Sample Scores</h2><table>{header}{body}</table>"
@@ -76,8 +78,26 @@ def _score_bar(score: float) -> str:
     return f'<span class="bar" style="width:{pct}px">&nbsp;</span> {pct}%'
 
 
+def _format_cell(value: Any) -> str:
+    """Render a per-sample score, or a visible marker for a failed judgment."""
+    if value is None:
+        return "<em>error</em>"
+    return f"{value:.4f}"
+
+
 class HTMLReportGenerator:
-    """Thin wrapper around generate_html_report."""
+    """Thin wrapper around generate_html_report.
+
+    Deprecated: call :func:`generate_html_report` directly. Kept for
+    backwards compatibility; emits DeprecationWarning.
+    """
+
+    def __init__(self) -> None:
+        warnings.warn(
+            "HTMLReportGenerator is deprecated; use generate_html_report() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
     def generate(self, results: dict[str, Any], output_path: str) -> None:
         generate_html_report(results, output_path)

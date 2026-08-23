@@ -38,4 +38,4 @@ class OllamaBackend(BaseBackend):
             return response.json().get("embedding", [])
         except Exception as exc:
             logger.error("Ollama embedding call failed: %s", exc)
-            return []
+            raise RuntimeError(f"Ollama backend error: {exc}") from exc

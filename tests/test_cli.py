@@ -88,6 +88,17 @@ class TestRunCommand:
             result = runner.invoke(main, ["run", "--config", str(cfg)])
         assert result.exit_code == 1
 
+    def test_unknown_backend_from_config_exits_cleanly(self, runner, tmp_path):
+        """Bad backend name in YAML must be a friendly error, not a KeyError."""
+        ds = tmp_path / "data.jsonl"
+        ds.write_text('{"question":"Q","context":"C","answer":"A"}\n')
+        cfg = tmp_path / "config.yaml"
+        cfg.write_text(f"dataset: {str(ds)}\nbackend: not_a_backend\n")
+        result = runner.invoke(main, ["run", "--config", str(cfg)])
+        assert result.exit_code == 1
+        assert "unknown backend" in result.output.lower()
+        assert isinstance(result.exception, SystemExit)
+
     def test_run_success_exits_0(self, runner, dataset_file, tmp_path):
         out = str(tmp_path / "results.json")
         with patch.dict("rag_eval.cli.BACKEND_MAP", {"openai": MagicMock(return_value=_mock_backend())}):
@@ -149,3 +160,71 @@ class TestRunCommand:
             ])
         assert result.exit_code == 0
         assert os.path.exists(cache)
+
+    def test_run_warns_on_scoring_errors(self, runner, dataset_file, tmp_path):
+        out = str(tmp_path / "results.json")
+        backend = MagicMock()
+        backend.model = "test-model"
+        backend.generate.return_value = "not a score at all"
+        with patch.dict("rag_eval.cli.BACKEND_MAP", {"openai": MagicMock(return_value=backend)}):
+            result = runner.invoke(main, ["run", "--dataset", dataset_file, "--backend", "openai", "--output", out])
+        assert result.exit_code == 0
+        assert "warning" in result.output.lower()
+        assert "excluded from the average" in result.output.lower()
+
+
+class TestReliabilityCommand:
+    def test_reliability_runs_and_reports(self, runner, dataset_file):
+        with patch.dict("rag_eval.cli.BACKEND_MAP", {"openai": MagicMock(return_value=_mock_backend())}):
+            result = runner.invoke(main, [
+                "reliability", "--dataset", dataset_file, "--backend", "openai",
+                "--runs", "2",
+            ])
+        assert result.exit_code == 0
+        assert "Judge Reliability" in result.output
+
+    def test_reliability_rejects_single_run(self, runner, dataset_file):
+        with patch.dict("rag_eval.cli.BACKEND_MAP", {"openai": MagicMock(return_value=_mock_backend())}):
+            result = runner.invoke(main, [
+                "reliability", "--dataset", dataset_file, "--backend", "openai",
+                "--runs", "1",
+            ])
+        assert result.exit_code == 1
+
+    def test_reliability_missing_dataset_exits_1(self, runner):
+        result = runner.invoke(main, ["reliability"])
+        assert result.exit_code == 1
+
+class TestBaseUrlOption:
+    def test_base_url_from_config_reaches_backend(self, runner, dataset_file, tmp_path):
+        cfg = tmp_path / "config.yaml"
+        cfg.write_text(
+            f"dataset: {dataset_file}\nbackend: ollama\n"
+            f"base_url: http://127.0.0.1:9999\nmetrics:\n  - faithfulness\n"
+        )
+        captured = {}
+
+        def fake_backend_cls(**kwargs):
+            captured.update(kwargs)
+            return _mock_backend()
+
+        with patch.dict("rag_eval.cli.BACKEND_MAP", {"ollama": fake_backend_cls}):
+            result = runner.invoke(main, ["run", "--config", str(cfg), "--output", str(tmp_path / "o.json")])
+        assert result.exit_code == 1 or result.exit_code == 0  # backend call may fail; setup must not
+        assert captured.get("base_url") == "http://127.0.0.1:9999"
+
+    def test_base_url_flag_overrides_config(self, runner, dataset_file, tmp_path):
+        cfg = tmp_path / "config.yaml"
+        cfg.write_text(f"dataset: {dataset_file}\nbackend: ollama\nbase_url: http://from-config:1\n")
+        captured = {}
+
+        def fake_backend_cls(**kwargs):
+            captured.update(kwargs)
+            return _mock_backend()
+
+        with patch.dict("rag_eval.cli.BACKEND_MAP", {"ollama": fake_backend_cls}):
+            runner.invoke(main, [
+                "run", "--config", str(cfg), "--base-url", "http://from-flag:2",
+                "--output", str(tmp_path / "o.json"),
+            ])
+        assert captured.get("base_url") == "http://from-flag:2"

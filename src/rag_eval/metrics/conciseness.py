@@ -1,7 +1,7 @@
-"""Conciseness metric -- measures if the answer is direct and free of fluff."""
+"""Conciseness metric -- measures if the answer is direct and free of filler."""
 from typing import Any
 
-from .base import BaseMetric
+from .base import BaseMetric, _judge_prompt
 
 
 class ConcisenessMetric(BaseMetric):
@@ -15,15 +15,18 @@ class ConcisenessMetric(BaseMetric):
         super().__init__(name="conciseness")
 
     def score(self, row: dict[str, Any], backend: Any) -> float:
-        answer = row.get("answer", "")
-
-        prompt = (
-            "You are an impartial judge evaluating RAG output quality.\n\n"
-            "Evaluate if the answer provides necessary information without "
-            "unnecessary words, repetition, or filler content.\n\n"
-            f"<answer>{answer}</answer>\n\n"
-            "Respond ONLY with a single float score from 0.0 to 1.0.\n"
-            "1.0 = perfectly concise and direct\n"
-            "0.0 = extremely wordy, repetitive, or filled with irrelevant content"
+        prompt = _judge_prompt(
+            role="RAG answer conciseness",
+            instructions=(
+                "Judge whether the answer conveys its information without "
+                "unnecessary words, hedging, repetition, or filler. A longer "
+                "answer is not automatically less concise if every sentence "
+                "carries information; score against padding, not length."
+            ),
+            fields={"answer": row.get("answer", "")},
+            score_meaning=(
+                "0.0 = extremely wordy, repetitive, or filled with irrelevant content\n"
+                "1.0 = perfectly concise, no filler"
+            ),
         )
         return self._generate_score(backend, prompt)

@@ -11,12 +11,12 @@ class LiteLLMBackend(BaseBackend):
     """Universal backend using LiteLLM to support 100+ LLM providers.
 
     Args:
-        model: Model identifier (e.g. "gpt-4o", "anthropic/claude-sonnet-4-6",
-            "gemini/gemini-1.5-flash"). LiteLLM resolves keys from env vars if
+        model: Model identifier (e.g. "gpt-5.1", "anthropic/claude-sonnet-5",
+            "gemini/gemini-2.5-flash"). LiteLLM resolves keys from env vars if
             api_key is not passed.
     """
 
-    def __init__(self, model: str = "gpt-4o", api_key: Optional[str] = None) -> None:
+    def __init__(self, model: str = "gpt-5.1", api_key: Optional[str] = None) -> None:
         try:
             import litellm  # noqa: F401
         except ImportError as exc:
@@ -49,4 +49,4 @@ class LiteLLMBackend(BaseBackend):
             return response.data[0]["embedding"]
         except Exception as exc:
             logger.error("LiteLLM embedding call failed: %s", exc)
-            return []
+            raise RuntimeError(f"LiteLLM backend error: {exc}") from exc

@@ -1,7 +1,14 @@
-"""Faithfulness metric -- measures whether the answer is grounded in the context."""
+"""Faithfulness metric -- measures whether the answer is grounded in the context.
+
+Follows Ragas' definition (Es et al., 2023, arXiv:2309.15217): the fraction of
+claims in the answer that are supported by the retrieved context. Ragas
+computes this with a separate claim-extraction pass before verification; this
+implementation asks the judge to do both in one call, trading some precision
+for one LLM call per sample instead of two.
+"""
 from typing import Any
 
-from .base import BaseMetric
+from .base import BaseMetric, _judge_prompt
 
 
 class FaithfulnessMetric(BaseMetric):
@@ -15,19 +22,23 @@ class FaithfulnessMetric(BaseMetric):
         super().__init__(name="faithfulness")
 
     def score(self, row: dict[str, Any], backend: Any) -> float:
-        question = row.get("question", "")
-        context = row.get("context", "")
-        answer = row.get("answer", "")
-
-        prompt = (
-            "You are an impartial judge evaluating RAG output quality.\n\n"
-            "Evaluate whether the answer is faithful to the context. Every claim "
-            "must be traceable back to the context with no hallucinated additions.\n\n"
-            f"<context>{context}</context>\n"
-            f"<question>{question}</question>\n"
-            f"<answer>{answer}</answer>\n\n"
-            "Respond ONLY with a single float score from 0.0 to 1.0.\n"
-            "0.0 = completely unfaithful / hallucinated\n"
-            "1.0 = completely faithful"
+        prompt = _judge_prompt(
+            role="RAG output faithfulness",
+            instructions=(
+                "Break the answer down into its individual factual claims. For "
+                "each claim, check whether it is directly stated in or can be "
+                "reasonably inferred from the context. A claim that relies on "
+                "outside knowledge not present in the context counts against "
+                "faithfulness, even if the claim happens to be true."
+            ),
+            fields={
+                "context": row.get("context", ""),
+                "question": row.get("question", ""),
+                "answer": row.get("answer", ""),
+            },
+            score_meaning=(
+                "0.0 = no claims are supported by the context\n"
+                "1.0 = every claim is supported by the context"
+            ),
         )
         return self._generate_score(backend, prompt)

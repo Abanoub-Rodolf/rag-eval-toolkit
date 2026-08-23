@@ -1,29 +1,34 @@
-import unittest
-from unittest.mock import MagicMock
+import pytest
 
+from rag_eval.metrics.base import ScoreParseError
 from rag_eval.metrics.faithfulness import FaithfulnessMetric
 
 
-class TestFaithfulnessMetric(unittest.TestCase):
-    def setUp(self):
-        self.metric = FaithfulnessMetric()
-        self.mock_backend = MagicMock()
-
-    def test_score_valid_response(self):
-        self.mock_backend.generate.return_value = "0.9"
+class TestFaithfulnessMetric:
+    def test_score_valid_response(self, mock_backend):
+        mock_backend.generate.return_value = "0.9"
         row = {
             "question": "What is RAG?",
             "context": "RAG is Retrieval-Augmented Generation.",
             "answer": "RAG is a technique."
         }
-        score = self.metric.score(row, self.mock_backend)
-        self.assertEqual(score, 0.9)
+        score = FaithfulnessMetric().score(row, mock_backend)
+        assert score == 0.9
 
-    def test_score_invalid_response(self):
-        self.mock_backend.generate.return_value = "invalid"
+    def test_score_valid_response_with_reasoning(self, mock_backend):
+        mock_backend.generate.return_value = (
+            "The answer restates the context accurately.\nSCORE: 0.95"
+        )
+        row = {
+            "question": "What is RAG?",
+            "context": "RAG is Retrieval-Augmented Generation.",
+            "answer": "RAG is a technique."
+        }
+        score = FaithfulnessMetric().score(row, mock_backend)
+        assert score == 0.95
+
+    def test_score_invalid_response_raises(self, mock_backend):
+        mock_backend.generate.return_value = "invalid"
         row = {"question": "Q", "context": "C", "answer": "A"}
-        score = self.metric.score(row, self.mock_backend)
-        self.assertEqual(score, 0.0)
-
-if __name__ == "__main__":
-    unittest.main()
+        with pytest.raises(ScoreParseError):
+            FaithfulnessMetric().score(row, mock_backend)

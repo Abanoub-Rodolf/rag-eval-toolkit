@@ -12,11 +12,12 @@ class GeminiBackend(BaseBackend):
     """Backend for Google Gemini.
 
     Args:
-        model: Gemini model name (default: "gemini-1.5-flash").
+        model: Gemini model name (default: "gemini-2.5-flash", the stable
+            proven-tier model rather than the bleeding-edge 3.x line).
         api_key: Google AI API key. Falls back to ``GOOGLE_API_KEY`` env var.
     """
 
-    def __init__(self, model: str = "gemini-1.5-flash", api_key: Optional[str] = None) -> None:
+    def __init__(self, model: str = "gemini-2.5-flash", api_key: Optional[str] = None) -> None:
         try:
             from google import genai
         except ImportError as exc:
@@ -52,4 +53,4 @@ class GeminiBackend(BaseBackend):
             return result.embedding.values
         except Exception as exc:
             logger.error("Gemini embedding call failed: %s", exc)
-            return []
+            raise RuntimeError(f"Gemini backend error: {exc}") from exc

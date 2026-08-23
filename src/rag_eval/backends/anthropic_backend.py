@@ -1,17 +1,14 @@
 import os
 
-try:
-    from anthropic import Anthropic
-except ImportError:
-    Anthropic = None
-
 from .base import BaseBackend
 
 
 class AnthropicBackend(BaseBackend):
-    def __init__(self, model: str = "claude-sonnet-4-6"):
-        if Anthropic is None:
-            raise ImportError("Please install anthropic: pip install anthropic")
+    def __init__(self, model: str = "claude-sonnet-5"):
+        try:
+            from anthropic import Anthropic
+        except ImportError as exc:
+            raise ImportError("Please install anthropic: pip install anthropic") from exc
 
         api_key = os.environ.get("ANTHROPIC_API_KEY")
         if not api_key:
