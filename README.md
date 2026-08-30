@@ -1,7 +1,10 @@
 # rag-eval-toolkit
 
+[![PyPI](https://img.shields.io/pypi/v/rag-eval-toolkit)](https://pypi.org/project/rag-eval-toolkit/)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+`pip install rag-eval-toolkit`
 
 Python toolkit for evaluating RAG (Retrieval-Augmented Generation) pipelines with LLM-as-judge metrics: faithfulness, hallucination, groundedness, relevancy, and more. Local-first via Ollama, with async execution and result caching.
 
